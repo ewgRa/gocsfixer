@@ -1,7 +1,7 @@
 # gocsfixer
 Golang coding standards fixer
 
-Early alfa version
+Early alpfa version
 
 Inspired by:
 
