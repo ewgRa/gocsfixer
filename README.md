@@ -4,6 +4,7 @@ Golang coding standards fixer
 Early alfa version
 
 Inspired by:
+
 https://github.com/FriendsOfPHP/PHP-CS-Fixer
 https://github.com/golang/lint
 https://github.com/golang/go/tree/master/src/fmt
