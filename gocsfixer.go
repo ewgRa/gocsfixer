@@ -20,7 +20,6 @@ func main() {
 	lint := true
 	fix := false
 
-	// FIXME XXX: config validation?
 	configs := readConfig()
 
 	for _, file := range getFiles() {
@@ -75,17 +74,6 @@ func main() {
 	}
 
 	os.Exit(returnValue)
-}
-
-// Read config
-//    fixers:
-//       no_new_line_before_error_check:
-//           fix: true
-func readConfig() []*CsFixerConfig {
-	configs := []*CsFixerConfig{}
-
-	configs = append(configs, NewCsFixerConfig(true, true, true, &fixers.NoNewLineBeforeErrorCheck{}))
-	return  configs
 }
 
 // Read files for processing
