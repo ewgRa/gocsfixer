@@ -7,20 +7,17 @@ import (
 	"os"
 	"bufio"
 	"reflect"
+	"flag"
 )
-
-// gocsfixer --recommend --lint --fix
-
-// Use case 1: pure linter
-// Use case 2: pure fixer
-// Use case 3: fixer with lint output
 
 func main() {
 	returnValue := 0
 
-	recommend := true
-	lint := true
-	fix := false
+	recommend := flag.Bool("recommend", false, "Show recommends")
+	lint := flag.Bool("lint", false, "Perform lint checks")
+	fix := flag.Bool("fix", false, "Perform fixes")
+
+	flag.Parse()
 
 	configs, err := readConfig()
 
@@ -38,7 +35,7 @@ func main() {
 		}
 
 		for _, config := range configs {
-			if fix {
+			if *fix {
 				if config.Fix() {
 					fixer, ok := config.csFixer.(fixers.Fixer)
 
@@ -48,15 +45,15 @@ func main() {
 
 					fmt.Println("fixer", fixer)
 				}
-			} else if recommend || lint {
+			} else if *recommend || *lint {
 				linter, ok := config.csFixer.(fixers.Linter)
 
 				if !ok {
 					handleError(fmt.Errorf("%s is not a linter, check your config", reflect.TypeOf(config.csFixer)))
 				}
 
-				lintMode := lint && config.Lint()
-				if (lintMode || recommend && config.Recommend()) {
+				lintMode := *lint && config.Lint()
+				if (lintMode || (*recommend && config.Recommend())) {
 					problems, err := linter.Lint(content)
 
 					if nil != err {
