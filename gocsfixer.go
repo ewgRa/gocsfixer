@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"bufio"
+	"reflect"
 )
 
 // gocsfixer --recommend --lint --fix
@@ -20,7 +22,11 @@ func main() {
 	lint := true
 	fix := false
 
-	configs := readConfig()
+	configs, err := readConfig()
+
+	if nil != err {
+		handleError(err)
+	}
 
 	for _, file := range getFiles() {
 		fmt.Println("File", file)
@@ -28,7 +34,7 @@ func main() {
 		content := string(c)
 
 		if nil != err  {
-			panic("Error reading file") // FIXME XXX: better message an react
+			handleError(fmt.Errorf("Error reading file %s", file))
 		}
 
 		for _, config := range configs {
@@ -37,7 +43,7 @@ func main() {
 					fixer, ok := config.csFixer.(fixers.Fixer)
 
 					if !ok {
-						panic("It is not a fixer") // FIXME XXX: better message an react
+						handleError(fmt.Errorf("%s is not a fixer, check your config", reflect.TypeOf(config.csFixer)))
 					}
 
 					fmt.Println("fixer", fixer)
@@ -46,7 +52,7 @@ func main() {
 				linter, ok := config.csFixer.(fixers.Linter)
 
 				if !ok {
-					panic("It is not a linter, can't lint or recommend") // FIXME XXX: better message an react
+					handleError(fmt.Errorf("%s is not a linter, check your config", reflect.TypeOf(config.csFixer)))
 				}
 
 				lintMode := lint && config.Lint()
@@ -54,7 +60,7 @@ func main() {
 					problems, err := linter.Lint(content)
 
 					if nil != err {
-						panic("error during lint") // FIXME XXX: better message an react
+						handleError(fmt.Errorf("Error during lint file %s: %s", file, err))
 					}
 
 					if lintMode && len(problems) != 0 {
@@ -80,7 +86,19 @@ func main() {
 func getFiles() []string {
 	files := []string{}
 
-	files = append(files, "/home/ewgra/go/src/github.com/b/test.go")
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for scanner.Scan() {
+		files = append(files, scanner.Text())
+	}
+
+	if nil != scanner.Err() {
+		handleError(scanner.Err())
+	}
 
 	return files
+}
+
+func handleError(e error) {
+	panic(e)
 }

@@ -35,11 +35,13 @@ func (c *CsFixerConfig) String() string {
 }
 
 // FIXME XXX: config validation?
-func readConfig() []*CsFixerConfig {
+func readConfig() ([]*CsFixerConfig, error) {
 	// FIXME XXX: from command line
-	content, err := ioutil.ReadFile(".gocsfixer.yml")
+	file := ".gocsfixer.yml"
+	content, err := ioutil.ReadFile(file)
+
 	if nil != err  {
-		panic("Error reading config file") // FIXME XXX: better message an react
+		return []*CsFixerConfig{}, fmt.Errorf("Can't read config file %s: %s", file, err)
 	}
 
 	config := map[string]map[string]map[string]string{}
@@ -47,7 +49,7 @@ func readConfig() []*CsFixerConfig {
 	err = yaml.Unmarshal(content, config)
 
 	if nil != err  {
-		panic("Error parsing config file") // FIXME XXX: better message an react
+		return []*CsFixerConfig{}, fmt.Errorf("Can't parse config file %s: %s", file, err)
 	}
 
 
@@ -55,21 +57,39 @@ func readConfig() []*CsFixerConfig {
 
 	for name, settings := range config["fixers"] {
 		if name == "no_new_line_before_error_check" {
-			configs = append(configs, NewCsFixerConfig(extractBool(settings["recommend"]), extractBool(settings["lint"]), extractBool(settings["fix"]), &fixers.NoNewLineBeforeErrorCheck{}))
+			recommend, err := extractBool(settings["recommend"])
+
+			if nil != err {
+				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s recommend setting: %s", name, settings["recommend"])
+			}
+
+			lint, err := extractBool(settings["lint"])
+
+			if nil != err {
+				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s lint setting: %s", name, settings["lint"])
+			}
+
+			fix, err := extractBool(settings["fix"])
+
+			if nil != err {
+				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s fix setting: %s", name, settings["fix"])
+			}
+
+			configs = append(configs, NewCsFixerConfig(recommend, lint, fix, &fixers.NoNewLineBeforeErrorCheck{}))
 		} else {
-			panic("Unknown fixer") // FIXME XXX: better message an react
+			return []*CsFixerConfig{}, fmt.Errorf("Unknown fixer %s", name)
 		}
 	}
 
-	return  configs
+	return  configs, nil
 }
 
-func extractBool(v string) bool {
+func extractBool(v string) (bool, error) {
 	if v == "true" {
-		return true
+		return true, nil
 	} else if v == "false" {
-		return false
+		return false, nil
 	}
 
-	panic("Not a bool value") // FIXME XXX: better message an react
+	return false, fmt.Errorf("%s not a bool value", v)
 }
