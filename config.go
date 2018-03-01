@@ -54,30 +54,31 @@ func readConfig(file string) ([]*CsFixerConfig, error) {
 	configs := []*CsFixerConfig{}
 
 	for name, settings := range config["fixers"] {
-		// FIXME XXX: register func
-		if name == "no_new_line_before_error_check" {
-			recommend, err := extractBool(settings["recommend"])
+		createFunc, ok := fixers.FixersMap[name]
 
-			if nil != err {
-				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s recommend setting: %s", name, settings["recommend"])
-			}
-
-			lint, err := extractBool(settings["lint"])
-
-			if nil != err {
-				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s lint setting: %s", name, settings["lint"])
-			}
-
-			fix, err := extractBool(settings["fix"])
-
-			if nil != err {
-				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s fix setting: %s", name, settings["fix"])
-			}
-
-			configs = append(configs, NewCsFixerConfig(recommend, lint, fix, &fixers.NoNewLineBeforeErrorCsFixer{}))
-		} else {
+		if !ok {
 			return []*CsFixerConfig{}, fmt.Errorf("Unknown fixer %s", name)
 		}
+
+		recommend, err := extractBool(settings["recommend"])
+
+		if nil != err {
+			return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s recommend setting: %s", name, settings["recommend"])
+		}
+
+		lint, err := extractBool(settings["lint"])
+
+		if nil != err {
+			return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s lint setting: %s", name, settings["lint"])
+		}
+
+		fix, err := extractBool(settings["fix"])
+
+		if nil != err {
+			return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s fix setting: %s", name, settings["fix"])
+		}
+
+		configs = append(configs, NewCsFixerConfig(recommend, lint, fix, createFunc()))
 	}
 
 	return  configs, nil

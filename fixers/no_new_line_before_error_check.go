@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+func init() {
+	FixersMap["no_new_line_before_error_check"] = func () CsFixer {
+		return &NoNewLineBeforeErrorCsFixer{}
+	}
+}
+
 type NoNewLineBeforeErrorCsFixer struct {
 	positions []token.Pos
 	fset *token.FileSet

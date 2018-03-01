@@ -2,6 +2,12 @@ package fixers
 
 import "fmt"
 
+var FixersMap map[string]func () CsFixer
+
+func init()  {
+	FixersMap = make(map[string]func () CsFixer, 0)
+}
+
 type CsFixer interface {
 }
 
