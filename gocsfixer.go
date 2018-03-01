@@ -30,6 +30,7 @@ func main() {
 		fmt.Println("File", file)
 		c, err := ioutil.ReadFile(file)
 		content := string(c)
+		fixContent := content
 
 		if nil != err  {
 			handleError(fmt.Errorf("Error reading file %s", file))
@@ -44,7 +45,11 @@ func main() {
 						handleError(fmt.Errorf("%s is not a fixer, check your config", reflect.TypeOf(config.csFixer)))
 					}
 
-					fmt.Println("fixer", fixer)
+					fixContent, err = fixer.Fix(fixContent)
+
+					if nil != err {
+						handleError(fmt.Errorf("Error during fix file %s: %s", file, err))
+					}
 				}
 			} else if *recommend || *lint {
 				linter, ok := config.csFixer.(fixers.Linter)
@@ -74,6 +79,10 @@ func main() {
 					}
 				}
 			}
+		}
+
+		if fixContent != content {
+			err = ioutil.WriteFile(file, []byte(fixContent), 0644)
 		}
 	}
 

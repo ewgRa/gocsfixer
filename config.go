@@ -54,6 +54,7 @@ func readConfig(file string) ([]*CsFixerConfig, error) {
 	configs := []*CsFixerConfig{}
 
 	for name, settings := range config["fixers"] {
+		// FIXME XXX: register func
 		if name == "no_new_line_before_error_check" {
 			recommend, err := extractBool(settings["recommend"])
 
@@ -73,7 +74,7 @@ func readConfig(file string) ([]*CsFixerConfig, error) {
 				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s fix setting: %s", name, settings["fix"])
 			}
 
-			configs = append(configs, NewCsFixerConfig(recommend, lint, fix, &fixers.NoNewLineBeforeErrorCheck{}))
+			configs = append(configs, NewCsFixerConfig(recommend, lint, fix, &fixers.NoNewLineBeforeErrorCsFixer{}))
 		} else {
 			return []*CsFixerConfig{}, fmt.Errorf("Unknown fixer %s", name)
 		}

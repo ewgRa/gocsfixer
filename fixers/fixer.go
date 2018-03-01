@@ -10,7 +10,7 @@ type Linter interface {
 }
 
 type Fixer interface {
-	Fix(content string) (Problems, string, error)
+	Fix(content string) (string, error)
 }
 
 type Problem struct {

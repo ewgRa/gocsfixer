@@ -7,15 +7,14 @@ import (
 	"go/format"
 	"go/ast"
 	"strings"
-	"sort"
 )
 
-type NoNewLineBeforeErrorCheck struct {
+type NoNewLineBeforeErrorCsFixer struct {
 	positions []token.Pos
 	fset *token.FileSet
 }
 
-func (l *NoNewLineBeforeErrorCheck) Lint(content string) (Problems, error) {
+func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
 	l.positions = []token.Pos{}
 
 	l.fset = token.NewFileSet()
@@ -41,8 +40,6 @@ func (l *NoNewLineBeforeErrorCheck) Lint(content string) (Problems, error) {
 		checkLinesMap[position.Line] = position
 	}
 
-	sort.Sort(sort.Reverse(sort.IntSlice(checkLines)))
-
 	var problems []*Problem
 
 	for _, line := range checkLines {
@@ -58,11 +55,27 @@ func (l *NoNewLineBeforeErrorCheck) Lint(content string) (Problems, error) {
 	return problems, nil
 }
 
-func (l *NoNewLineBeforeErrorCheck) Fix(content string) (Problems, string) {
-	return Problems{}, content
+func (l *NoNewLineBeforeErrorCsFixer) Fix(content string) (string, error) {
+	problems, err := l.Lint(content)
+
+	if nil != err {
+		return "", err
+	}
+
+	if len(problems) == 0 {
+		return content, nil
+	}
+
+	lines := strings.Split(content, "\n")
+
+	for i := len(problems)-1; i >=0; i-- {
+		lines = append(lines[:problems[i].Position.line-2], lines[problems[i].Position.line-1:]...)
+	}
+
+	return strings.Join(lines, "\n"), nil
 }
 
-func (l *NoNewLineBeforeErrorCheck) check(n ast.Node) bool {
+func (l *NoNewLineBeforeErrorCsFixer) check(n ast.Node) bool {
 	e, ok := n.(*ast.BinaryExpr)
 	if !ok {
 		return true // not a binary operation
@@ -84,6 +97,6 @@ func (l *NoNewLineBeforeErrorCheck) check(n ast.Node) bool {
 	return true
 }
 
-func (l *NoNewLineBeforeErrorCheck) String() string {
+func (l *NoNewLineBeforeErrorCsFixer) String() string {
 	return "No new line before error check"
 }
