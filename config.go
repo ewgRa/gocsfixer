@@ -35,9 +35,7 @@ func (c *CsFixerConfig) String() string {
 }
 
 // FIXME XXX: config validation?
-func readConfig() ([]*CsFixerConfig, error) {
-	// FIXME XXX: from command line
-	file := ".gocsfixer.yml"
+func readConfig(file string) ([]*CsFixerConfig, error) {
 	content, err := ioutil.ReadFile(file)
 
 	if nil != err  {

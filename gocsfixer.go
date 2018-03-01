@@ -16,10 +16,11 @@ func main() {
 	recommend := flag.Bool("recommend", false, "Show recommends")
 	lint := flag.Bool("lint", false, "Perform lint checks")
 	fix := flag.Bool("fix", false, "Perform fixes")
+	configFile := flag.String("config", ".gocsfixer.yml", "Config file")
 
 	flag.Parse()
 
-	configs, err := readConfig()
+	configs, err := readConfig(*configFile)
 
 	if nil != err {
 		handleError(err)
