@@ -80,7 +80,7 @@ func content() string {
 			if err != nil {
 			}
 
-			if err==nil {
+			if nil==err {
 			}
 		}
 
@@ -114,7 +114,7 @@ func fixedContent() string {
 			}
 			if err != nil {
 			}
-			if err==nil {
+			if nil==err {
 			}
 		}
 
