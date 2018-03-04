@@ -27,7 +27,9 @@ func main() {
 	}
 
 	for _, file := range getFiles() {
-		fmt.Println("File", file)
+		initLine := fmt.Sprintln("File", file)
+		result := initLine
+
 		c, err := ioutil.ReadFile(file)
 		content := string(c)
 		fixContent := content
@@ -72,13 +74,17 @@ func main() {
 
 					for _, problem := range problems {
 						if lintMode {
-							fmt.Println("    error", problem)
+							result += fmt.Sprintln("    error", problem)
 						} else {
-							fmt.Println("    recommendation", problem)
+							result += fmt.Sprintln("    recommendation", problem)
 						}
 					}
 				}
 			}
+		}
+
+		if result != initLine {
+			fmt.Print(result)
 		}
 
 		if fixContent != content {
