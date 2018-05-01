@@ -23,7 +23,7 @@ func main() {
 	var err error
 	var fileLineNumber, diffLineNumber int
 
-	var lineRegexp = regexp.MustCompile(`^@@ -\d+,\d+ \+(?P<newLines>\d+),\d+ @@$`)
+	var lineRegexp = regexp.MustCompile(`^@@ -\d+,\d+ \+(?P<newLines>\d+),\d+ @@`)
 
 	for scanner.Scan() {
 		line := scanner.Text()
