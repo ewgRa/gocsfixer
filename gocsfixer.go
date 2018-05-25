@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"reflect"
 	"flag"
+	"encoding/json"
 )
 
 func main() {
@@ -26,10 +27,9 @@ func main() {
 		handleError(err)
 	}
 
-	for _, file := range getFiles() {
-		initLine := fmt.Sprintln("File", file)
-		result := initLine
+	var results []*Result
 
+	for _, file := range getFiles() {
 		c, err := ioutil.ReadFile(file)
 		content := string(c)
 		fixContent := content
@@ -73,23 +73,38 @@ func main() {
 					}
 
 					for _, problem := range problems {
+						problemType := "recommendation"
+
 						if lintMode {
-							result += fmt.Sprintln("    error", problem)
-						} else {
-							result += fmt.Sprintln("    recommendation", problem)
+							problemType = "error"
 						}
+
+						results = append(results, &Result{
+							Type: problemType,
+							File: file,
+							Line: problem.Position.Line,
+							Text: problem.Text,
+						})
 					}
 				}
 			}
 		}
 
-		if result != initLine {
-			fmt.Print(result)
-		}
-
 		if fixContent != content {
 			err = ioutil.WriteFile(file, []byte(fixContent), 0644)
 		}
+	}
+
+	if len(results) > 0 {
+		data, err := json.Marshal(results)
+
+		if err != nil {
+			handleError(err)
+		}
+
+		fmt.Println(string(data))
+	} else {
+		fmt.Println("[]")
 	}
 
 	os.Exit(returnValue)
@@ -114,4 +129,11 @@ func getFiles() []string {
 
 func handleError(e error) {
 	panic(e)
+}
+
+type Result struct {
+	Type string `json:"type"`
+	File string `json:"file"`
+	Line int `json:"line"`
+	Text string `json:"text"`
 }

@@ -75,7 +75,7 @@ func (l *NoNewLineBeforeErrorCsFixer) Fix(content string) (string, error) {
 	lines := strings.Split(content, "\n")
 
 	for i := len(problems)-1; i >=0; i-- {
-		lines = append(lines[:problems[i].Position.line-2], lines[problems[i].Position.line-1:]...)
+		lines = append(lines[:problems[i].Position.Line -2], lines[problems[i].Position.Line -1:]...)
 	}
 
 	return strings.Join(lines, "\n"), nil

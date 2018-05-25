@@ -27,15 +27,15 @@ type Problem struct {
 }
 
 func (p *Problem) String() string {
-	return fmt.Sprintf("at line %v: %s", p.Position.line, p.Text)
+	return fmt.Sprintf("at line %v: %s", p.Position.Line, p.Text)
 }
 
 type Problems []*Problem
 
 func NewPosition(line int) *Position {
-	return &Position{line: line}
+	return &Position{Line: line}
 }
 
 type Position struct {
-	line int
+	Line int
 }

@@ -14,8 +14,8 @@ func TestNoNewLineBeforeErrorCsFixerLint(t *testing.T) {
 		t.Fail()
 	}
 
-	if problems[0].Position.line != 23 {
-		fmt.Println("First problem found on", problems[0].Position.line, "line, expected 23")
+	if problems[0].Position.Line != 23 {
+		fmt.Println("First problem found on", problems[0].Position.Line, "line, expected 23")
 		t.Fail()
 	}
 
@@ -24,8 +24,8 @@ func TestNoNewLineBeforeErrorCsFixerLint(t *testing.T) {
 		t.Fail()
 	}
 
-	if problems[1].Position.line != 26 {
-		fmt.Println("Second problem found on", problems[1].Position.line, "line, expected 26")
+	if problems[1].Position.Line != 26 {
+		fmt.Println("Second problem found on", problems[1].Position.Line, "line, expected 26")
 		t.Fail()
 	}
 
