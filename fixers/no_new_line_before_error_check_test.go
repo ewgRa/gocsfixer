@@ -11,27 +11,33 @@ func TestNoNewLineBeforeErrorCsFixerLint(t *testing.T) {
 	problems, _ := fixer.Lint(content())
 
 	if (len(problems) != 2) {
+		fmt.Println("Expected two problems, got", len(problems))
 		t.Fail()
+		return
 	}
 
-	if problems[0].Position.Line != 23 {
-		fmt.Println("First problem found on", problems[0].Position.Line, "line, expected 23")
+	if problems[0].Position.Line != 22 {
+		fmt.Println("First problem found on", problems[0].Position.Line, "line, expected 22")
 		t.Fail()
+		return
 	}
 
 	if problems[0].Text != "No newline before check error" {
 		fmt.Println("First problem have text", problems[0].Text, ", 'No newline before check error' expected")
 		t.Fail()
+		return
 	}
 
-	if problems[1].Position.Line != 26 {
-		fmt.Println("Second problem found on", problems[1].Position.Line, "line, expected 26")
+	if problems[1].Position.Line != 25 {
+		fmt.Println("Second problem found on", problems[1].Position.Line, "line, expected 25")
 		t.Fail()
+		return
 	}
 
 	if problems[1].Text != "No newline before check error" {
 		fmt.Println("Second problem have text", problems[1].Text, ", 'No newline before check error' expected")
 		t.Fail()
+		return
 	}
 }
 
@@ -43,6 +49,7 @@ func TestNoNewLineBeforeErrorCsFixerFix(t *testing.T) {
 	if nil != err {
 		fmt.Println("Error when perform fix:", err)
 		t.Fail()
+		return
 	}
 
 	expectedFixedContent := fixedContent()
@@ -51,6 +58,7 @@ func TestNoNewLineBeforeErrorCsFixerFix(t *testing.T) {
 		fmt.Println("Fixed content differ from expected")
 		fmt.Println(contentFix)
 		t.Fail()
+		return
 	}
 }
 

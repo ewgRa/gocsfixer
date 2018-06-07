@@ -1,4 +1,4 @@
-package main
+package gocsfixer
 
 import (
 	"github.com/ewgRa/gocsfixer/fixers"
@@ -8,14 +8,14 @@ import (
 )
 
 func NewCsFixerConfig(recommend, lint, fix bool, csFixer fixers.CsFixer) *CsFixerConfig {
-	return &CsFixerConfig{recommend: recommend, lint: lint, fix: fix, csFixer: csFixer}
+	return &CsFixerConfig{recommend: recommend, lint: lint, fix: fix, CsFixer: csFixer}
 }
 
 type CsFixerConfig struct {
 	recommend bool
 	lint bool
 	fix bool
-	csFixer fixers.CsFixer
+	CsFixer fixers.CsFixer
 }
 
 func (c *CsFixerConfig) Recommend() bool {
@@ -31,11 +31,11 @@ func (c *CsFixerConfig) Fix() bool {
 }
 
 func (c *CsFixerConfig) String() string {
-	return fmt.Sprintf("Config, fix: %v, csFixer: %v", c.fix, c.csFixer)
+	return fmt.Sprintf("Config, fix: %v, csFixer: %v", c.fix, c.CsFixer)
 }
 
 // FIXME XXX: config validation?
-func readConfig(file string) ([]*CsFixerConfig, error) {
+func ReadConfig(file string) ([]*CsFixerConfig, error) {
 	content, err := ioutil.ReadFile(file)
 
 	if nil != err  {

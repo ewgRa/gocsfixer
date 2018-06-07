@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"flag"
 	"encoding/json"
+	"github.com/ewgRa/gocsfixer"
 )
 
 func main() {
@@ -21,13 +22,13 @@ func main() {
 
 	flag.Parse()
 
-	configs, err := readConfig(*configFile)
+	configs, err := gocsfixer.ReadConfig(*configFile)
 
 	if nil != err {
 		handleError(err)
 	}
 
-	var results []*Result
+	var results []*gocsfixer.Result
 
 	for _, file := range getFiles() {
 		c, err := ioutil.ReadFile(file)
@@ -41,10 +42,10 @@ func main() {
 		for _, config := range configs {
 			if *fix {
 				if config.Fix() {
-					fixer, ok := config.csFixer.(fixers.Fixer)
+					fixer, ok := config.CsFixer.(fixers.Fixer)
 
 					if !ok {
-						handleError(fmt.Errorf("%s is not a fixer, check your config", reflect.TypeOf(config.csFixer)))
+						handleError(fmt.Errorf("%s is not a fixer, check your config", reflect.TypeOf(config.CsFixer)))
 					}
 
 					fixContent, err = fixer.Fix(fixContent)
@@ -54,10 +55,10 @@ func main() {
 					}
 				}
 			} else if *recommend || *lint {
-				linter, ok := config.csFixer.(fixers.Linter)
+				linter, ok := config.CsFixer.(fixers.Linter)
 
 				if !ok {
-					handleError(fmt.Errorf("%s is not a linter, check your config", reflect.TypeOf(config.csFixer)))
+					handleError(fmt.Errorf("%s is not a linter, check your config", reflect.TypeOf(config.CsFixer)))
 				}
 
 				lintMode := *lint && config.Lint()
@@ -79,7 +80,7 @@ func main() {
 							problemType = "error"
 						}
 
-						results = append(results, &Result{
+						results = append(results, &gocsfixer.Result{
 							Type: problemType,
 							File: file,
 							Line: problem.Position.Line,
@@ -117,7 +118,11 @@ func getFiles() []string {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
-		files = append(files, scanner.Text())
+		file := scanner.Text()
+
+		if file != "" {
+			files = append(files, scanner.Text())
+		}
 	}
 
 	if nil != scanner.Err() {
@@ -129,11 +134,4 @@ func getFiles() []string {
 
 func handleError(e error) {
 	panic(e)
-}
-
-type Result struct {
-	Type string `json:"type"`
-	File string `json:"file"`
-	Line int `json:"line"`
-	Text string `json:"text"`
 }

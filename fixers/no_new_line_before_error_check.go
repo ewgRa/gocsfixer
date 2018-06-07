@@ -54,7 +54,7 @@ func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
 		}
 
 		if lines[line-2] == "" {
-			problems = append(problems, &Problem{Position: NewPosition(checkLinesMap[line].Line), Text: "No newline before check error", LineText: lines[line-1]})
+			problems = append(problems, &Problem{Position: NewPosition(checkLinesMap[line].Line-1), Text: "No newline before check error", LineText: lines[line-2]})
 		}
 	}
 
@@ -75,7 +75,7 @@ func (l *NoNewLineBeforeErrorCsFixer) Fix(content string) (string, error) {
 	lines := strings.Split(content, "\n")
 
 	for i := len(problems)-1; i >=0; i-- {
-		lines = append(lines[:problems[i].Position.Line -2], lines[problems[i].Position.Line -1:]...)
+		lines = append(lines[:problems[i].Position.Line-1], lines[problems[i].Position.Line:]...)
 	}
 
 	return strings.Join(lines, "\n"), nil
