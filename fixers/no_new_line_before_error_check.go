@@ -37,24 +37,17 @@ func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
 
 	lines := strings.Split(content, "\n")
 
-	var checkLines []int
-	checkLinesMap := make(map[int]token.Position, 0)
+	var problems []*Problem
 
 	for _, tokenPos := range l.positions {
 		position := l.fset.Position(tokenPos)
-		checkLines = append(checkLines, position.Line)
-		checkLinesMap[position.Line] = position
-	}
 
-	var problems []*Problem
-
-	for _, line := range checkLines {
-		if line < 2 {
+		if position.Line < 2 {
 			continue
 		}
 
-		if lines[line-2] == "" {
-			problems = append(problems, &Problem{Position: NewPosition(checkLinesMap[line].Line-1), Text: "No newline before check error", LineText: lines[line-2]})
+		if lines[position.Line-2] == "" {
+			problems = append(problems, &Problem{Position: NewPosition(position.Line-1), Text: "No newline before check error", LineText: lines[position.Line-2]})
 		}
 	}
 
