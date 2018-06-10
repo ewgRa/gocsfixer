@@ -27,10 +27,10 @@ If you not sure about how strict you are with check, you can define it only as r
 Or for example you know that this check must be on lint level, but it can be fixed only manually - than you define your check as lint: true, fix: false.
 
 ## Fixers
-- *no_new_line_before_error_check - check that there is no new line before "if err != nil", inspired by https://github.com/elastic/beats/pull/5954#discussion_r162829996
-- *[WIP]use_path_join - check that instead `os.Readlink("foo/bar" + "/foobar")` path.Join used and code looks like `os.Readlink(path.Join("foo", "bar", "foobar"))` [https://github.com/ewgRa/gocsfixer/issues/2]
-- *[WIP]replace_call - will be used to recommend call on function instead of other, for example use logp.Err instead of logp.Warn [https://github.com/ewgRa/gocsfixer/issues/4]
-- *[WIP]group_stdlib_imports - group stdlib imports all together [https://github.com/ewgRa/gocsfixer/issues/3]
+- no_new_line_before_error_check - check that there is no new line before "if err != nil", inspired by https://github.com/elastic/beats/pull/5954#discussion_r162829996
+- [WIP] use_path_join - check that instead `os.Readlink("foo/bar" + "/foobar")` path.Join used and code looks like `os.Readlink(path.Join("foo", "bar", "foobar"))` [https://github.com/ewgRa/gocsfixer/issues/2]
+- [WIP] replace_call - will be used to recommend call on function instead of other, for example use logp.Err instead of logp.Warn [https://github.com/ewgRa/gocsfixer/issues/4]
+- [WIP] group_stdlib_imports - group stdlib imports all together [https://github.com/ewgRa/gocsfixer/issues/3]
 
 Early alpha version
 
