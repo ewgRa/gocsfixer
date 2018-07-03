@@ -2,11 +2,10 @@ package fixers
 
 import "fmt"
 
-var FixersMap map[string]func () CsFixer
+type FixerOptions map[interface{}]interface{}
+type FixerCreateFunc func (options FixerOptions) (CsFixer, error)
 
-func init()  {
-	FixersMap = make(map[string]func () CsFixer, 0)
-}
+var FixersMap map[string]FixerCreateFunc
 
 type CsFixer interface {
 }
@@ -39,3 +38,12 @@ func NewPosition(line int) *Position {
 type Position struct {
 	Line int
 }
+
+func AddFixer(name string, createFunc FixerCreateFunc)  {
+	if FixersMap == nil {
+		FixersMap = make(map[string]FixerCreateFunc, 0)
+	}
+
+	FixersMap[name] = createFunc
+}
+

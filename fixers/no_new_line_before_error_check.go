@@ -10,9 +10,9 @@ import (
 )
 
 func init() {
-	FixersMap["no_new_line_before_error_check"] = func () CsFixer {
-		return &NoNewLineBeforeErrorCsFixer{}
-	}
+	AddFixer("no_new_line_before_error_check", func (options FixerOptions) (CsFixer, error) {
+		return &NoNewLineBeforeErrorCsFixer{}, nil
+	})
 }
 
 type NoNewLineBeforeErrorCsFixer struct {
