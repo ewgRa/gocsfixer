@@ -3,3 +3,11 @@ fixers:
        recommend: true
        lint: true
        fix: true
+
+   use_path_join:
+       recommend: true
+       lint: true
+       fix: true
+
+questionable:
+    - use_path_join

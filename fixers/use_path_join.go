@@ -8,6 +8,7 @@ import (
 	"go/parser"
 	"go/format"
 	"os"
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {
@@ -49,31 +50,76 @@ func (l *UsePathJoinCsFixer) Lint(content string) (Problems, error) {
 }
 
 func (l *UsePathJoinCsFixer) Fix(content string) (string, error) {
-	/// FIXME XXX: implement me
-	return content, nil
+	l.fset = token.NewFileSet()
+
+	file, err := parser.ParseFile(l.fset, "", content, parser.ParseComments)
+	if err != nil {
+		return content, err
+	}
+
+	var wrongNodeCount int
+
+	astutil.Apply(
+		file,
+		nil,
+		func(cursor *astutil.Cursor) bool {
+			if l.isWrongNode(cursor.Node()) {
+				wrongNodeCount++
+
+				e, _ := cursor.Node().(*ast.CallExpr)
+
+				pathJoinCall := &ast.CallExpr{
+					Fun: &ast.SelectorExpr{
+						X: &ast.Ident{Name: "path"},
+						Sel: &ast.Ident{Name: "Join"},
+					},
+					Args: l.processArg(e.Args[0]),
+				}
+
+				e.Args = []ast.Expr{pathJoinCall}
+			}
+
+			return true
+		},
+	)
+
+	if (wrongNodeCount > 0) {
+		astutil.AddImport(l.fset, file, "path")
+	}
+
+	var buf bytes.Buffer
+	format.Node(&buf, l.fset, file)
+
+	return buf.String(), nil
 }
 
 func (l *UsePathJoinCsFixer) check(n ast.Node) bool {
+	if l.isWrongNode(n) {
+		l.positions = append(l.positions, n.Pos())
+	}
+
+	return true
+}
+
+func (l *UsePathJoinCsFixer) isWrongNode(n ast.Node) bool {
 	selectors := map[string]bool {"os.Readlink": true}
 
 	e, ok := n.(*ast.CallExpr)
 
 	if !ok {
-		return true // not a binary operation
+		return false // not a function call
 	}
 
 	selector := e.Fun.(*ast.SelectorExpr)
 	ident := selector.X.(*ast.Ident)
 
 	if _, ok := selectors[ident.Name + "." + selector.Sel.Name]; !ok {
-		return true
+		return false
 	}
 
 	binArg, ok := e.Args[0].(*ast.BinaryExpr)
 
 	if ok && binArg.Op.String() == "+" {
-		// Something like os.Readlink(gosigar.Procd + "self")
-		l.positions = append(l.positions, e.Pos())
 		return true
 	}
 
@@ -84,13 +130,39 @@ func (l *UsePathJoinCsFixer) check(n ast.Node) bool {
 		parts := strings.Split(arg.Value, string(os.PathSeparator))
 
 		if len(parts) > 1 {
-			l.positions = append(l.positions, e.Pos())
+			return true
 		}
-
-		return true
 	}
 
-	return true
+	return false
+}
+
+func (l *UsePathJoinCsFixer) processArg(n ast.Node) []ast.Expr {
+	var result []ast.Expr
+
+	binArg, ok := n.(*ast.BinaryExpr)
+
+	if ok {
+		result = append(result, l.processArg(binArg.X)...)
+		result = append(result, l.processArg(binArg.Y)...)
+		return result
+	}
+
+	arg, ok := n.(*ast.BasicLit)
+
+	if ok {
+		parts := strings.Split(strings.Trim(arg.Value, "\""), string(os.PathSeparator))
+
+		for _, part := range parts {
+			result = append(result, &ast.BasicLit{Value: "\"" + part + "\""})
+		}
+
+		return result
+	}
+
+	result = append(result, n.(ast.Expr))
+
+	return result
 }
 
 func (l *UsePathJoinCsFixer) String() string {

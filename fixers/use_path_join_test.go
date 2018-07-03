@@ -41,7 +41,7 @@ func TestUsePathJoinCsFixerLint(t *testing.T) {
 }
 
 func TestUsePathJoinFix(t *testing.T) {
-	fixer := &NoNewLineBeforeErrorCsFixer{}
+	fixer := &UsePathJoinCsFixer{}
 
 	contentFix, err := fixer.Fix(contentForUsePathJoinCsFixer())
 
@@ -76,16 +76,16 @@ func contentForUsePathJoinCsFixer() string {
 }
 
 func fixedContentForUsePathJoinCsFixer() string {
-	// FIXME: import must be added?
-	return `
-		package main
+	return `package main
 
-		func main() {
-			os.Readlink(path.Join(gosigar.Procd, "self"))
-			os.Readlink(path.Join("foo", "self")
-			os.Readlink("fine")
-			os.Readlink(path.Join(gosigar.Procd, "se", "lf")
-			os.Readlink(path.Join("a", "b"))
-		}
-	`
+import "path"
+
+func main() {
+	os.Readlink(gosigar.Procd + "self")
+	os.Readlink(path.Join("foo", "self"))
+	os.Readlink("fine")
+	os.Readlink(gosigar.Procd + path.Join("se", "lf"))
+	os.Readlink(path.Join("a", "b"))
+}
+`
 }
