@@ -3,6 +3,16 @@ fixers:
        recommend: true
        lint: true
        fix: true
+   file_header:
+       recommend: true
+       lint: true
+       fix: true
+       options:
+            header: |
+                // This header required line 1
+                // This header required line 2
+
+            lintText: License header required
 
    use_path_join:
        recommend: true

@@ -42,7 +42,7 @@ func ReadConfig(file string) ([]*CsFixerConfig, error) {
 		return []*CsFixerConfig{}, fmt.Errorf("Can't read config file %s: %s", file, err)
 	}
 
-	config := map[string]map[string]map[string]string{}
+	config := map[string]map[string]map[string]interface{}{}
 
 	err = yaml.Unmarshal(content, config)
 
@@ -78,18 +78,34 @@ func ReadConfig(file string) ([]*CsFixerConfig, error) {
 			return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s fix setting: %s", name, settings["fix"])
 		}
 
-		configs = append(configs, NewCsFixerConfig(recommend, lint, fix, createFunc()))
+		var options fixers.FixerOptions
+
+		if settingsOptions, ok := settings["options"]; ok {
+			options, ok = settingsOptions.(map[interface{}]interface{})
+
+			if !ok {
+				return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s options settings: %s", name, settings["options"])
+			}
+		}
+
+		fixer, err := createFunc(options)
+
+		if err != nil {
+			return []*CsFixerConfig{}, fmt.Errorf("Can't create fixer %s, error is: %s", name, err)
+		}
+
+		configs = append(configs, NewCsFixerConfig(recommend, lint, fix, fixer))
 	}
 
 	return  configs, nil
 }
 
-func extractBool(v string) (bool, error) {
-	if v == "true" {
-		return true, nil
-	} else if v == "false" {
-		return false, nil
+func extractBool(v interface{}) (bool, error) {
+	value, ok := v.(bool)
+
+	if (!ok) {
+		return false, fmt.Errorf("%s not a bool value", v)
 	}
 
-	return false, fmt.Errorf("%s not a bool value", v)
+	return value, nil
 }

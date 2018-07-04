@@ -12,9 +12,9 @@ import (
 )
 
 func init() {
-	FixersMap["use_path_join"] = func () CsFixer {
-		return &UsePathJoinCsFixer{}
-	}
+	AddFixer("use_path_join", func (options FixerOptions) (CsFixer, error) {
+		return &UsePathJoinCsFixer{}, nil
+	})
 }
 
 type UsePathJoinCsFixer struct {
