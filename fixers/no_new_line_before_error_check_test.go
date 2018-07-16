@@ -58,8 +58,17 @@ func TestNoNewLineBeforeErrorCsFixerFix(t *testing.T) {
 		t.Fail()
 		return
 	}
+
+	problems, _ := fixer.Lint(expectedFixedContent)
+
+	if len(problems) != 0 {
+		fmt.Println("Expected no problem, got", len(problems))
+		t.Fail()
+		return
+	}
 }
 
+// FIXME XXX: use table tests
 func contentForNoNewLineBeforeErrorCsFixer() string {
 	return `
 		package main
