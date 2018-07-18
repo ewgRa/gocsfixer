@@ -13,3 +13,8 @@ fixers:
                 // This header required line 2
 
             lintText: License header required
+
+   use_path_join:
+       recommend: true
+       lint: true
+       fix: true
