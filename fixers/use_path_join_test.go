@@ -97,13 +97,22 @@ func usePathJoinCsFixerTestTable() []pathJoinTestCase {
 	var totalCase pathJoinTestCase
 
 	for k, _ := range cases {
+		if cases[k].expected != cases[k].test && len(cases[k].problems) == 0 {
+			cases[k].problems = append(cases[k].problems, &Problem{Position: &Position{Line: 5}, Text: "Use path.Join"})
+		}
+
+		for _, problem := range cases[k].problems {
+			totalCase.problems = append(
+				totalCase.problems,
+				&Problem{
+					Position: &Position{Line: problem.Position.Line+strings.Count(totalCase.test, "\n")},
+					Text: problem.Text,
+				},
+			)
+		}
+
 		totalCase.test += cases[k].test + "\n\t"
 		totalCase.expected += cases[k].expected + "\n\t"
-
-		if cases[k].expected != cases[k].test {
-			cases[k].problems = append(cases[k].problems, &Problem{Position: &Position{Line: 5}, Text: "Use path.Join"})
-			totalCase.problems = append(totalCase.problems, &Problem{Position: &Position{Line: 5+k}, Text: "Use path.Join"})
-		}
 
 		cases[k].expected = getExpectedContentForUsePathJoinCsFixer(cases[k])
 		cases[k].test = getTestContentForUsePathJoinCsFixer(cases[k].test)
