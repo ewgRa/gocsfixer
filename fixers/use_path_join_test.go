@@ -1,130 +1,55 @@
-package fixers
+package fixers_test
 
 import (
 	"testing"
-	"fmt"
-	"strings"
+	"github.com/ewgRa/gocsfixer/fixers"
 )
 
 func TestUsePathJoinCsFixerLint(t *testing.T) {
-	fixer := &UsePathJoinCsFixer{}
-
-	for _, testCase := range usePathJoinCsFixerTestTable() {
-		problems, _ := fixer.Lint(testCase.test)
-
-		if (len(problems) != len(testCase.problems)) {
-			fmt.Println("Expected", len(testCase.problems), "problem(s), got", len(problems))
-			t.Fail()
-			return
-		}
-
-		for k, problem := range testCase.problems {
-			if problem.Position.Line != problems[k].Position.Line {
-				fmt.Println("Problem found on", problems[k].Position.Line, "line, expected", problem.Position.Line)
-				t.Fail()
-				return
-			}
-
-			if problem.Text != problems[k].Text {
-				fmt.Println("Problem have text", fmt.Sprintf("'%s'", problems[k].Text), ",", problem.Text, "expected")
-				t.Fail()
-				return
-			}
-		}
-	}
+	assertLint(t, &fixers.UsePathJoinCsFixer{}, usePathJoinCsFixerTestTable())
 }
 
 func TestUsePathJoinFix(t *testing.T) {
-	fixer := &UsePathJoinCsFixer{}
-
-	for _, testCase := range usePathJoinCsFixerTestTable() {
-		contentFix, err := fixer.Fix(testCase.test)
-
-		if nil != err {
-			fmt.Println("Error when perform fix:", err)
-			t.Fail()
-			return
-		}
-
-		if testCase.expected != contentFix {
-			fmt.Println("Fixed content differ from expected")
-			fmt.Println(contentFix, testCase.expected)
-			t.Fail()
-			return
-		}
-
-		problems, _ := fixer.Lint(contentFix)
-
-		if len(problems) != 0 {
-			fmt.Println("Expected no problem, got", len(problems))
-			t.Fail()
-			return
-		}
-	}
+	assertFix(t, &fixers.UsePathJoinCsFixer{}, usePathJoinCsFixerTestTable())
 }
 
-type pathJoinTestCase struct{
-	test string
-	expected string
-	problems Problems
-}
-
-func usePathJoinCsFixerTestTable() []pathJoinTestCase {
-	cases := []pathJoinTestCase {
-		{`os.Readlink("fine")`, `os.Readlink("fine")`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shine")`, `os.Readlink("fine" + "shine")`, make(Problems, 0)},
-		{`os.Readlink(gosigar.Procd + "self")`, `os.Readlink(gosigar.Procd + "self")`, make(Problems, 0)},
-		{`os.Readlink(path.Join("a", "b"))`, `os.Readlink(path.Join("a", "b"))`, make(Problems, 0)},
-		{`os.Readlink("foo/self")`, `os.Readlink(path.Join("foo", "self"))`, make(Problems, 0)},
-		{`os.Readlink(gosigar.Procd + "se/lf")`, `os.Readlink(gosigar.Procd + path.Join("se", "lf"))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shi/ne")`, `os.Readlink("fine" + path.Join("shi", "ne"))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shi/ne" + "wi/ne")`, `os.Readlink("fine" + path.Join("shi", "ne") + path.Join("wi", "ne"))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shine" + "wi/ne")`, `os.Readlink("fine" + "shine" + path.Join("wi", "ne"))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shi/ne" + "wine")`, `os.Readlink("fine" + path.Join("shi", "ne") + "wine")`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shi/n/e" + "w/i/ne")`, `os.Readlink("fine" + path.Join("shi", "n", "e") + path.Join("w", "i", "ne"))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shi/n/e" + "/wi/ne")`, `os.Readlink("fine" + path.Join("shi", "n", "e", "wi", "ne"))`, make(Problems, 0)},
-		{`os.Readlink("fine/" + "shi/n/e" + "/wi/ne")`, `os.Readlink(path.Join("fine", "shi", "n", "e", "wi", "ne"))`, make(Problems, 0)},
-		{`os.Readlink(gosigar.Procd + "/self")`, `os.Readlink(path.Join(gosigar.Procd, "self"))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "/shine")`, `os.Readlink(path.Join("fine", "shine"))`, make(Problems, 0)},
-		{`os.Readlink("/self")`, `os.Readlink(path.Join("", "self"))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shi/n/e/" + "wi/ne")`, `os.Readlink("fine" + path.Join("shi", "n", "e", "wi", "ne"))`, make(Problems, 0)},
-		{`os.Readlink(gosigar.Procd + "self/")`, `os.Readlink(gosigar.Procd + path.Join("self", ""))`, make(Problems, 0)},
-		{`os.Readlink("fine" + "shine/")`, `os.Readlink("fine" + path.Join("shine", ""))`, make(Problems, 0)},
-		{`os.Readlink("self/")`, `os.Readlink(path.Join("self", ""))`, make(Problems, 0)},
-		{`os.Readlink("/self/")`, `os.Readlink(path.Join("", "self", ""))`, make(Problems, 0)},
+func usePathJoinCsFixerTestTable() []fixerTestCase {
+	cases := []fixerTestCase {
+		{`os.Readlink("fine")`, `os.Readlink("fine")`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shine")`, `os.Readlink("fine" + "shine")`, make(fixers.Problems, 0)},
+		{`os.Readlink(gosigar.Procd + "self")`, `os.Readlink(gosigar.Procd + "self")`, make(fixers.Problems, 0)},
+		{`os.Readlink(path.Join("a", "b"))`, `os.Readlink(path.Join("a", "b"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("foo/self")`, `os.Readlink(path.Join("foo", "self"))`, make(fixers.Problems, 0)},
+		{`os.Readlink(gosigar.Procd + "se/lf")`, `os.Readlink(gosigar.Procd + path.Join("se", "lf"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shi/ne")`, `os.Readlink("fine" + path.Join("shi", "ne"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shi/ne" + "wi/ne")`, `os.Readlink("fine" + path.Join("shi", "ne") + path.Join("wi", "ne"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shine" + "wi/ne")`, `os.Readlink("fine" + "shine" + path.Join("wi", "ne"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shi/ne" + "wine")`, `os.Readlink("fine" + path.Join("shi", "ne") + "wine")`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shi/n/e" + "w/i/ne")`, `os.Readlink("fine" + path.Join("shi", "n", "e") + path.Join("w", "i", "ne"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shi/n/e" + "/wi/ne")`, `os.Readlink("fine" + path.Join("shi", "n", "e", "wi", "ne"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine/" + "shi/n/e" + "/wi/ne")`, `os.Readlink(path.Join("fine", "shi", "n", "e", "wi", "ne"))`, make(fixers.Problems, 0)},
+		{`os.Readlink(gosigar.Procd + "/self")`, `os.Readlink(path.Join(gosigar.Procd, "self"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "/shine")`, `os.Readlink(path.Join("fine", "shine"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("/self")`, `os.Readlink(path.Join("", "self"))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shi/n/e/" + "wi/ne")`, `os.Readlink("fine" + path.Join("shi", "n", "e", "wi", "ne"))`, make(fixers.Problems, 0)},
+		{`os.Readlink(gosigar.Procd + "self/")`, `os.Readlink(gosigar.Procd + path.Join("self", ""))`, make(fixers.Problems, 0)},
+		{`os.Readlink("fine" + "shine/")`, `os.Readlink("fine" + path.Join("shine", ""))`, make(fixers.Problems, 0)},
+		{`os.Readlink("self/")`, `os.Readlink(path.Join("self", ""))`, make(fixers.Problems, 0)},
+		{`os.Readlink("/self/")`, `os.Readlink(path.Join("", "self", ""))`, make(fixers.Problems, 0)},
 	}
-
-	var totalCase pathJoinTestCase
 
 	for k, _ := range cases {
 		if cases[k].expected != cases[k].test && len(cases[k].problems) == 0 {
-			cases[k].problems = append(cases[k].problems, &Problem{Position: &Position{Line: 5}, Text: "Use path.Join"})
+			cases[k].problems = append(cases[k].problems, &fixers.Problem{Position: &fixers.Position{Line: 5}, Text: "Use path.Join"})
 		}
+	}
 
-		for _, problem := range cases[k].problems {
-			totalCase.problems = append(
-				totalCase.problems,
-				&Problem{
-					Position: &Position{Line: problem.Position.Line+strings.Count(totalCase.test, "\n")},
-					Text: problem.Text,
-				},
-			)
-		}
+	cases = append(cases, getTotalTestCase(cases))
 
-		totalCase.test += cases[k].test + "\n\t"
-		totalCase.expected += cases[k].expected + "\n\t"
-
+	for k, _ := range cases {
 		cases[k].expected = getExpectedContentForUsePathJoinCsFixer(cases[k])
 		cases[k].test = getTestContentForUsePathJoinCsFixer(cases[k].test)
 	}
-
-	totalCase.expected = strings.TrimRight(totalCase.expected, "\t")
-	totalCase.test = strings.TrimRight(totalCase.test, "\t")
-
-	totalCase.expected = getExpectedContentForUsePathJoinCsFixer(totalCase)
-	totalCase.test = getTestContentForUsePathJoinCsFixer(totalCase.test)
-
-	cases = append(cases, totalCase)
 
 	return cases
 }
@@ -139,7 +64,7 @@ func getTestContentForUsePathJoinCsFixer(content string) string {
 	`
 }
 
-func getExpectedContentForUsePathJoinCsFixer(testCase pathJoinTestCase) string {
+func getExpectedContentForUsePathJoinCsFixer(testCase fixerTestCase) string {
 	if testCase.expected == testCase.test {
 		return `package main
 

@@ -47,3 +47,16 @@ func AddFixer(name string, createFunc FixerCreateFunc)  {
 	FixersMap[name] = createFunc
 }
 
+func CreateFixer(name string, options FixerOptions) (CsFixer, error) {
+	if createFunc, ok := FixersMap[name]; ok {
+		fixer, err := createFunc(options)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return fixer, nil
+	}
+
+	return nil, nil
+}
