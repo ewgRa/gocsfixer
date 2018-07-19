@@ -1,23 +1,23 @@
 package fixers
 
 import (
-	"go/token"
-	"go/parser"
 	"bytes"
-	"go/format"
 	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
 	"strings"
 )
 
 func init() {
-	AddFixer("no_new_line_before_error_check", func (options FixerOptions) (CsFixer, error) {
+	AddFixer("no_new_line_before_error_check", func(options FixerOptions) (CsFixer, error) {
 		return &NoNewLineBeforeErrorCsFixer{}, nil
 	})
 }
 
 type NoNewLineBeforeErrorCsFixer struct {
 	positions []token.Pos
-	fset *token.FileSet
+	fset      *token.FileSet
 }
 
 func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
@@ -47,7 +47,7 @@ func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
 		}
 
 		if lines[position.Line-2] == "" {
-			problems = append(problems, &Problem{Position: NewPosition(position.Line-1), Text: "No newline before check error", LineText: lines[position.Line-2]})
+			problems = append(problems, &Problem{Position: NewPosition(position.Line - 1), Text: "No newline before check error", LineText: lines[position.Line-2]})
 		}
 	}
 
@@ -67,7 +67,7 @@ func (l *NoNewLineBeforeErrorCsFixer) Fix(content string) (string, error) {
 
 	lines := strings.Split(content, "\n")
 
-	for i := len(problems)-1; i >=0; i-- {
+	for i := len(problems) - 1; i >= 0; i-- {
 		lines = append(lines[:problems[i].Position.Line-1], lines[problems[i].Position.Line:]...)
 	}
 
@@ -89,7 +89,7 @@ func (l *NoNewLineBeforeErrorCsFixer) check(n ast.Node) bool {
 	var bufY bytes.Buffer
 	format.Node(&bufY, l.fset, e.Y)
 
-	if (buf.String() == "err" || bufY.String() == "err") {
+	if buf.String() == "err" || bufY.String() == "err" {
 		l.positions = append(l.positions, e.Pos())
 	}
 

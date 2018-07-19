@@ -1,8 +1,8 @@
 package fixers_test
 
 import (
-	"testing"
 	"github.com/ewgRa/gocsfixer/fixers"
+	"testing"
 )
 
 func TestNoNewLineBeforeErrorLint(t *testing.T) {
@@ -14,7 +14,7 @@ func TestNoNewLineBeforeErrorFix(t *testing.T) {
 }
 
 func noNewLineBeforeErrorCheckTestTable() []fixerTestCase {
-	cases := []fixerTestCase {
+	cases := []fixerTestCase{
 		{
 			`err = test()
 
@@ -61,7 +61,7 @@ func noNewLineBeforeErrorCheckTestTable() []fixerTestCase {
 				&fixers.Problem{Position: &fixers.Position{Line: 12}, Text: "No newline before check error"},
 				&fixers.Problem{Position: &fixers.Position{Line: 15}, Text: "No newline before check error"},
 			},
-	}}
+		}}
 
 	for k, _ := range cases {
 		if cases[k].expected != cases[k].test && len(cases[k].problems) == 0 {

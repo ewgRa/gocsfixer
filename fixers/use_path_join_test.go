@@ -1,8 +1,8 @@
 package fixers_test
 
 import (
-	"testing"
 	"github.com/ewgRa/gocsfixer/fixers"
+	"testing"
 )
 
 func TestUsePathJoinCsFixerLint(t *testing.T) {
@@ -14,7 +14,7 @@ func TestUsePathJoinFix(t *testing.T) {
 }
 
 func usePathJoinCsFixerTestTable() []fixerTestCase {
-	cases := []fixerTestCase {
+	cases := []fixerTestCase{
 		{`os.Readlink("fine")`, `os.Readlink("fine")`, make(fixers.Problems, 0)},
 		{`os.Readlink("fine" + "shine")`, `os.Readlink("fine" + "shine")`, make(fixers.Problems, 0)},
 		{`os.Readlink(gosigar.Procd + "self")`, `os.Readlink(gosigar.Procd + "self")`, make(fixers.Problems, 0)},

@@ -1,10 +1,10 @@
 package gocsfixer
 
 import (
-	"github.com/ewgRa/gocsfixer/fixers"
 	"fmt"
-	"io/ioutil"
+	"github.com/ewgRa/gocsfixer/fixers"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 func NewCsFixerConfig(recommend, lint, fix bool, csFixer fixers.CsFixer) *CsFixerConfig {
@@ -13,9 +13,9 @@ func NewCsFixerConfig(recommend, lint, fix bool, csFixer fixers.CsFixer) *CsFixe
 
 type CsFixerConfig struct {
 	recommend bool
-	lint bool
-	fix bool
-	CsFixer fixers.CsFixer
+	lint      bool
+	fix       bool
+	CsFixer   fixers.CsFixer
 }
 
 func (c *CsFixerConfig) Recommend() bool {
@@ -27,7 +27,7 @@ func (c *CsFixerConfig) Lint() bool {
 }
 
 func (c *CsFixerConfig) Fix() bool {
-		return c.fix
+	return c.fix
 }
 
 func (c *CsFixerConfig) String() string {
@@ -38,7 +38,7 @@ func (c *CsFixerConfig) String() string {
 func ReadConfig(file string) ([]*CsFixerConfig, error) {
 	content, err := ioutil.ReadFile(file)
 
-	if nil != err  {
+	if nil != err {
 		return []*CsFixerConfig{}, fmt.Errorf("Can't read config file %s: %s", file, err)
 	}
 
@@ -46,10 +46,9 @@ func ReadConfig(file string) ([]*CsFixerConfig, error) {
 
 	err = yaml.Unmarshal(content, config)
 
-	if nil != err  {
+	if nil != err {
 		return []*CsFixerConfig{}, fmt.Errorf("Can't parse config file %s: %s", file, err)
 	}
-
 
 	configs := []*CsFixerConfig{}
 
@@ -97,13 +96,13 @@ func ReadConfig(file string) ([]*CsFixerConfig, error) {
 		configs = append(configs, NewCsFixerConfig(recommend, lint, fix, fixer))
 	}
 
-	return  configs, nil
+	return configs, nil
 }
 
 func extractBool(v interface{}) (bool, error) {
 	value, ok := v.(bool)
 
-	if (!ok) {
+	if !ok {
 		return false, fmt.Errorf("%s not a bool value", v)
 	}
 

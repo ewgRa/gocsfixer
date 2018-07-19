@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/ewgRa/gocsfixer/fixers"
+	"bufio"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"github.com/ewgRa/gocsfixer"
+	"github.com/ewgRa/gocsfixer/fixers"
 	"io/ioutil"
 	"os"
-	"bufio"
 	"reflect"
-	"flag"
-	"encoding/json"
-	"github.com/ewgRa/gocsfixer"
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 		content := string(c)
 		fixContent := content
 
-		if nil != err  {
+		if nil != err {
 			handleError(fmt.Errorf("Error reading file %s", file))
 		}
 
@@ -62,7 +62,7 @@ func main() {
 				}
 
 				lintMode := *lint && config.Lint()
-				if (lintMode || (*recommend && config.Recommend())) {
+				if lintMode || (*recommend && config.Recommend()) {
 					problems, err := linter.Lint(content)
 
 					if nil != err {

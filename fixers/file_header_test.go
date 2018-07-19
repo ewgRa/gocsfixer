@@ -1,8 +1,8 @@
 package fixers_test
 
 import (
-	"testing"
 	"github.com/ewgRa/gocsfixer/fixers"
+	"testing"
 )
 
 func TestFileHeaderFixerLint(t *testing.T) {
@@ -14,15 +14,15 @@ func TestFileHeaderFix(t *testing.T) {
 }
 
 func fileHeaderTestTable() []fixerTestCase {
-	cases := []fixerTestCase {
+	cases := []fixerTestCase{
 		{
-			"\n" + `package main` + "\n\n" +
-			`func main() {` + "\n\n" +
-			`}`,
-			`// Header` + "\n\n" +
-			`package main` + "\n\n" +
-			`func main() {` + "\n\n" +
-			`}`,
+			"\npackage main\n\n" +
+				"func main() {\n\n" +
+				"}",
+			"// Header\n\n" +
+				"package main\n\n" +
+				"func main() {\n\n" +
+				"}",
 			fixers.Problems{
 				&fixers.Problem{Position: &fixers.Position{Line: 1}, Text: "License header required"},
 			},

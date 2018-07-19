@@ -3,7 +3,7 @@ package fixers
 import "fmt"
 
 type FixerOptions map[interface{}]interface{}
-type FixerCreateFunc func (options FixerOptions) (CsFixer, error)
+type FixerCreateFunc func(options FixerOptions) (CsFixer, error)
 
 var FixersMap map[string]FixerCreateFunc
 
@@ -20,9 +20,8 @@ type Fixer interface {
 
 type Problem struct {
 	Position *Position
-	Text string
+	Text     string
 	LineText string
-
 }
 
 func (p *Problem) String() string {
@@ -39,7 +38,7 @@ type Position struct {
 	Line int
 }
 
-func AddFixer(name string, createFunc FixerCreateFunc)  {
+func AddFixer(name string, createFunc FixerCreateFunc) {
 	if FixersMap == nil {
 		FixersMap = make(map[string]FixerCreateFunc, 0)
 	}

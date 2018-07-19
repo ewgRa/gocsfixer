@@ -1,25 +1,25 @@
 package fixers
 
 import (
-	"go/token"
-	"go/ast"
 	"bytes"
-	"strings"
-	"go/parser"
+	"go/ast"
 	"go/format"
-	"os"
+	"go/parser"
+	"go/token"
 	"golang.org/x/tools/go/ast/astutil"
+	"os"
+	"strings"
 )
 
 func init() {
-	AddFixer("use_path_join", func (options FixerOptions) (CsFixer, error) {
+	AddFixer("use_path_join", func(options FixerOptions) (CsFixer, error) {
 		return &UsePathJoinCsFixer{}, nil
 	})
 }
 
 type UsePathJoinCsFixer struct {
 	positions []token.Pos
-	fset *token.FileSet
+	fset      *token.FileSet
 }
 
 func (l *UsePathJoinCsFixer) Lint(content string) (Problems, error) {
@@ -75,7 +75,7 @@ func (l *UsePathJoinCsFixer) Fix(content string) (string, error) {
 		},
 	)
 
-	if (wrongNodeCount > 0) {
+	if wrongNodeCount > 0 {
 		astutil.AddImport(l.fset, file, "path")
 	}
 
@@ -94,7 +94,7 @@ func (l *UsePathJoinCsFixer) check(n ast.Node) bool {
 }
 
 func (l *UsePathJoinCsFixer) isWrongNode(n ast.Node) bool {
-	selectors := map[string]bool {"os.Readlink": true}
+	selectors := map[string]bool{"os.Readlink": true}
 
 	e, ok := n.(*ast.CallExpr)
 
@@ -105,7 +105,7 @@ func (l *UsePathJoinCsFixer) isWrongNode(n ast.Node) bool {
 	selector := e.Fun.(*ast.SelectorExpr)
 	ident := selector.X.(*ast.Ident)
 
-	if _, ok := selectors[ident.Name + "." + selector.Sel.Name]; !ok {
+	if _, ok := selectors[ident.Name+"."+selector.Sel.Name]; !ok {
 		return false
 	}
 
@@ -181,7 +181,7 @@ func (l *UsePathJoinCsFixer) processArg(n ast.Expr) ast.Expr {
 
 	pathJoinCall := &ast.CallExpr{
 		Fun: &ast.SelectorExpr{
-			X: &ast.Ident{Name: "path"},
+			X:   &ast.Ident{Name: "path"},
 			Sel: &ast.Ident{Name: "Join"},
 		},
 		Args: args,
@@ -205,7 +205,7 @@ func (l *UsePathJoinCsFixer) isPathJoinCall(n ast.Expr) bool {
 
 	ident, ok := selector.X.(*ast.Ident)
 
-	if (!ok) {
+	if !ok {
 		return false
 	}
 
@@ -230,7 +230,6 @@ func (l *UsePathJoinCsFixer) getRightPathJoinCall(n ast.Expr) ast.Expr {
 	return n
 }
 
-
 func (l *UsePathJoinCsFixer) isPathJoinCallLeftEmpty(n ast.Expr) bool {
 	if !l.isPathJoinCall(n) {
 		return false
@@ -250,7 +249,7 @@ func (l *UsePathJoinCsFixer) isPathJoinCallRightEmpty(n ast.Expr) bool {
 		return false
 	}
 
-	arg, ok := n.(*ast.CallExpr).Args[len(n.(*ast.CallExpr).Args) - 1].(*ast.BasicLit)
+	arg, ok := n.(*ast.CallExpr).Args[len(n.(*ast.CallExpr).Args)-1].(*ast.BasicLit)
 
 	if !ok {
 		return false

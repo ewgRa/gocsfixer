@@ -1,14 +1,14 @@
 package fixers_test
 
 import (
-	"github.com/ewgRa/gocsfixer/fixers"
-	"testing"
 	"fmt"
+	"github.com/ewgRa/gocsfixer/fixers"
 	"strings"
+	"testing"
 )
 
-type fixerTestCase struct{
-	test string
+type fixerTestCase struct {
+	test     string
 	expected string
 	problems fixers.Problems
 }
@@ -17,7 +17,7 @@ func assertLint(t *testing.T, linter fixers.Linter, testTable []fixerTestCase) {
 	for _, testCase := range testTable {
 		problems, _ := linter.Lint(testCase.test)
 
-		if (len(problems) != len(testCase.problems)) {
+		if len(problems) != len(testCase.problems) {
 			fmt.Println("Expected", len(testCase.problems), "problem(s), got", len(problems))
 			t.Fail()
 			return
@@ -77,8 +77,8 @@ func getTotalTestCase(cases []fixerTestCase) fixerTestCase {
 			totalCase.problems = append(
 				totalCase.problems,
 				&fixers.Problem{
-					Position: &fixers.Position{Line: problem.Position.Line+strings.Count(totalCase.test, "\n")},
-					Text: problem.Text,
+					Position: &fixers.Position{Line: problem.Position.Line + strings.Count(totalCase.test, "\n")},
+					Text:     problem.Text,
 				},
 			)
 		}
