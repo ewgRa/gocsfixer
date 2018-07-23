@@ -214,7 +214,7 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 			firstImplDec.Doc = impDecl.Doc
 
 			for _, cmt := range firstImplDec.Doc.List {
-				cmt.Slash = firstImplDec.Pos()-1
+				cmt.Slash = firstImplDec.Pos() - 1
 			}
 		}
 
