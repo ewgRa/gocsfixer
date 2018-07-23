@@ -14,7 +14,7 @@ import (
 
 func init() {
 	AddFixer("group_import", func(options FixerOptions) (CsFixer, error) {
-		lintText, err := options.extractString("lintText", "Group import")
+		lintText, err := options.extractString("lintText", "")
 
 		if err != nil {
 			return nil, err
@@ -75,7 +75,7 @@ func (l *GroupImportFixer) Lint(content string) (Problems, error) {
 
 				problems = append(problems, &Problem{
 					Position: NewPosition(line),
-					Text:     l.lintText,
+					Text:     l.String(),
 					LineText: lines[line],
 				})
 			}
@@ -403,5 +403,9 @@ func (l *GroupImportFixer) sameImportSpec(a *ast.ImportSpec, b *ast.ImportSpec) 
 }
 
 func (l *GroupImportFixer) String() string {
+	if l.lintText != "" {
+		return l.lintText
+	}
+
 	return "Group import"
 }
