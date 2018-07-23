@@ -30,14 +30,11 @@ func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
 		return Problems{}, err
 	}
 
-	var buf bytes.Buffer
-	format.Node(&buf, l.fset, file)
-
 	ast.Inspect(file, l.check)
 
 	lines := strings.Split(content, "\n")
 
-	var problems []*Problem
+	var problems Problems
 
 	for _, tokenPos := range l.positions {
 		position := l.fset.Position(tokenPos)

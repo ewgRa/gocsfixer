@@ -32,14 +32,11 @@ func (l *UsePathJoinCsFixer) Lint(content string) (Problems, error) {
 		return Problems{}, err
 	}
 
-	var buf bytes.Buffer
-	format.Node(&buf, l.fset, file)
-
 	ast.Inspect(file, l.check)
 
 	lines := strings.Split(content, "\n")
 
-	var problems []*Problem
+	var problems Problems
 
 	for _, tokenPos := range l.positions {
 		position := l.fset.Position(tokenPos)
@@ -102,7 +99,13 @@ func (l *UsePathJoinCsFixer) isWrongNode(n ast.Node) bool {
 		return false // not a function call
 	}
 
-	selector := e.Fun.(*ast.SelectorExpr)
+	selector, ok := e.Fun.(*ast.SelectorExpr)
+
+	if !ok {
+		// unusual selector, like interface{}(*to).(type)
+		return false
+	}
+
 	ident := selector.X.(*ast.Ident)
 
 	if _, ok := selectors[ident.Name+"."+selector.Sel.Name]; !ok {

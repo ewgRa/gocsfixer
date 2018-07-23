@@ -1,34 +1,21 @@
 package fixers
 
 import (
-	"errors"
 	"strings"
 )
 
 func init() {
 	AddFixer("file_header", func(options FixerOptions) (CsFixer, error) {
-		headerOption, ok := options["header"]
+		header, err := options.extractRequiredString("header")
 
-		if !ok {
-			return nil, errors.New("Header option is required")
+		if err != nil {
+			return nil, err
 		}
 
-		header, ok := headerOption.(string)
+		lintText, err := options.extractString("lintText", "File header")
 
-		if !ok {
-			return nil, errors.New("Wrong header option")
-		}
-
-		lintText := "File header"
-
-		lintTextOption, ok := options["lintText"]
-
-		if ok {
-			lintText, ok = lintTextOption.(string)
-
-			if !ok {
-				return nil, errors.New("Wrong header option")
-			}
+		if err != nil {
+			return nil, err
 		}
 
 		return &FileHeaderCsFixer{header: header, lintText: lintText}, nil
@@ -41,7 +28,7 @@ type FileHeaderCsFixer struct {
 }
 
 func (l *FileHeaderCsFixer) Lint(content string) (Problems, error) {
-	var problems []*Problem
+	var problems Problems
 
 	if !strings.HasPrefix(content, l.header) {
 		lines := strings.Split(content, "\n")

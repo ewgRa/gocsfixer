@@ -1,8 +1,54 @@
 package fixers
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type FixerOptions map[interface{}]interface{}
+
+func (o FixerOptions) extractRequiredString(name string) (string, error) {
+	_, ok := o[name]
+
+	if !ok {
+		return "", errors.New(name + " option is required")
+	}
+
+	return o.extractString(name, "")
+}
+
+func (o FixerOptions) extractString(name string, defaultValue string) (string, error) {
+	v, ok := o[name]
+
+	if !ok {
+		return defaultValue, nil
+	}
+
+	value, ok := v.(string)
+
+	if !ok {
+		return "", errors.New("Wrong " + name + " option")
+	}
+
+	return value, nil
+}
+
+func (o FixerOptions) extractBool(name string, defaultValue bool) (bool, error) {
+	v, ok := o[name]
+
+	if !ok {
+		return defaultValue, nil
+	}
+
+	value, ok := v.(bool)
+
+	if !ok {
+		return false, errors.New("Wrong " + name + " option")
+	}
+
+	return value, nil
+}
+
 type FixerCreateFunc func(options FixerOptions) (CsFixer, error)
 
 var FixersMap map[string]FixerCreateFunc

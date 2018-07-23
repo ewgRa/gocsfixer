@@ -18,3 +18,11 @@ fixers:
        recommend: true
        lint: true
        fix: true
+
+   group_import:
+       recommend: true
+       lint: true
+       fix: true
+       options:
+            stdLib: true
+            lintText: Group stdLib imports

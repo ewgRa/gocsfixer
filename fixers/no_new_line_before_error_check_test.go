@@ -23,7 +23,7 @@ func noNewLineBeforeErrorCheckTestTable() []fixerTestCase {
 			`err = test()
 			if err == nil {
 			}`,
-			make(fixers.Problems, 0),
+			fixers.Problems{},
 		}, {
 			`err = test()
 			if err == nil {
@@ -31,7 +31,7 @@ func noNewLineBeforeErrorCheckTestTable() []fixerTestCase {
 			`err = test()
 			if err == nil {
 			}`,
-			make(fixers.Problems, 0),
+			fixers.Problems{},
 		}, {
 			`
 			if anotherErr = test(); anotherErr == nil {
@@ -39,7 +39,7 @@ func noNewLineBeforeErrorCheckTestTable() []fixerTestCase {
 			`
 			if anotherErr = test(); anotherErr == nil {
 			}`,
-			make(fixers.Problems, 0),
+			fixers.Problems{},
 		}, {
 			`err = test()
 			if err == nil {
