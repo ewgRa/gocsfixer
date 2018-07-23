@@ -58,14 +58,14 @@ func noNewLineBeforeErrorCheckTestTable() []fixerTestCase {
 			if nil==err {
 			}`,
 			fixers.Problems{
-				&fixers.Problem{Position: &fixers.Position{Line: 12}, Text: "No newline before check error"},
-				&fixers.Problem{Position: &fixers.Position{Line: 15}, Text: "No newline before check error"},
+				&fixers.Problem{Position: &fixers.Position{Line: 11}, Text: "No newline before check error"},
+				&fixers.Problem{Position: &fixers.Position{Line: 14}, Text: "No newline before check error"},
 			},
 		}}
 
 	for k, _ := range cases {
 		if cases[k].expected != cases[k].test && len(cases[k].problems) == 0 {
-			cases[k].problems = append(cases[k].problems, &fixers.Problem{Position: &fixers.Position{Line: 10}, Text: "No newline before check error"})
+			cases[k].problems = append(cases[k].problems, &fixers.Problem{Position: &fixers.Position{Line: 9}, Text: "No newline before check error"})
 		}
 	}
 
@@ -80,8 +80,7 @@ func noNewLineBeforeErrorCheckTestTable() []fixerTestCase {
 }
 
 func getTestContentForNoNewLineBeforeErrorCheckCsFixer(content string) string {
-	return `
-		package main
+	return `package main
 
 		func test() error {
 			return nil

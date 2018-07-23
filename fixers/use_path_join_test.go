@@ -40,7 +40,7 @@ func usePathJoinCsFixerTestTable() []fixerTestCase {
 
 	for k, _ := range cases {
 		if cases[k].expected != cases[k].test && len(cases[k].problems) == 0 {
-			cases[k].problems = append(cases[k].problems, &fixers.Problem{Position: &fixers.Position{Line: 5}, Text: "Use path.Join"})
+			cases[k].problems = append(cases[k].problems, &fixers.Problem{Position: &fixers.Position{Line: 4}, Text: "Use path.Join"})
 		}
 	}
 
@@ -55,8 +55,7 @@ func usePathJoinCsFixerTestTable() []fixerTestCase {
 }
 
 func getTestContentForUsePathJoinCsFixer(content string) string {
-	return `
-		package main
+	return `package main
 
 		func main() {
 			` + content + `

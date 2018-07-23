@@ -15,8 +15,8 @@ func TestFileHeaderFix(t *testing.T) {
 
 func fileHeaderTestTable() []fixerTestCase {
 	return []fixerTestCase{
-		{`
-package main
+		{
+			`package main
 
 func main() {
 }`,
@@ -36,7 +36,7 @@ func main() {
 func createFileHeaderFixer() *fixers.FileHeaderCsFixer {
 	mapFixer, _ := fixers.CreateFixer(
 		"file_header",
-		fixers.FixerOptions{"header": "// Header\n", "lintText": "License header required"},
+		fixers.FixerOptions{"header": "// Header\n\n", "lintText": "License header required"},
 	)
 
 	return mapFixer.(*fixers.FileHeaderCsFixer)
