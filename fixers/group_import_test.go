@@ -151,38 +151,38 @@ func main() {
 				&fixers.Problem{Position: &fixers.Position{Line: 14}, Text: "Group stdlib imports"},
 			},
 		},
-		/*{
+		{
 			`package main
 
-		// foobar
-		import (
-			"testing"
-			"github.com/ewgRa/gocsfixer/fixers"
+// foobar
+import (
+	"testing"
+	"github.com/ewgRa/gocsfixer/fixers"
 
-			"go/token"
-		)
+	"go/token"
+)
 
-		func main() {
-		}
-		`,
+func main() {
+}
+`,
 			`package main
 
-		// foobar
-		import (
-			"go/token"
-			"testing"
+// foobar
+import (
+	"go/token"
+	"testing"
 
-			"github.com/ewgRa/gocsfixer/fixers"
-		)
+	"github.com/ewgRa/gocsfixer/fixers"
+)
 
-		func main() {
-		}
-		`,
-					fixers.Problems{
-						&fixers.Problem{Position: &fixers.Position{Line: 5}, Text: "Group stdlib imports"},
-						&fixers.Problem{Position: &fixers.Position{Line: 8}, Text: "Group stdlib imports"},
-					},
-				},*/
+func main() {
+}
+`,
+			fixers.Problems{
+				&fixers.Problem{Position: &fixers.Position{Line: 5}, Text: "Group stdlib imports"},
+				&fixers.Problem{Position: &fixers.Position{Line: 8}, Text: "Group stdlib imports"},
+			},
+		},
 		{
 			`package main
 

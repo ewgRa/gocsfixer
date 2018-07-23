@@ -105,17 +105,7 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 		}
 	}
 
-/*	var firstImportDocGroup *ast.CommentGroup
-
-	firstImportDecl := l.firstImportDec(file)
-
-	if firstImportDecl != nil {
-		firstImportDocGroup = firstImportDecl.Doc
-		l.removeComment(file, firstImportDocGroup)
-	}
-*/
-
-	// Delete found stdlib imports from document, we will add it later in needed order
+	// Delete found stdlib imports from document, we will add it later in right order
 	for _, importSpec := range stdLibImports {
 		path, err := strconv.Unquote(importSpec.Path.Value)
 
@@ -127,8 +117,6 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 		importDec := l.findImportDec(file, importSpec)
 
 		if importDec.Doc != nil && len(importDec.Specs) == 1 {
-			l.removeComment(file, importDec.Doc)
-
 			if importSpec.Doc == nil {
 				importSpec.Doc = importDec.Doc
 			} else {
@@ -136,10 +124,6 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 			}
 
 			importDec.Doc = nil
-		}
-
-		if importSpec.Doc != nil {
-			l.removeComment(file, importSpec.Doc)
 		}
 
 		if importSpec.Name != nil {
@@ -156,11 +140,14 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 		if importSpec.Comment != nil {
 			l.removeComment(file, importSpec.Comment)
 		}
+
+		if importSpec.Doc != nil {
+			l.removeComment(file, importSpec.Doc)
+		}
 	}
 
 	if len(stdLibImports) > 0 {
 		f := file
-		lastImport := -1
 
 		// Mostly taken from astutil/imports.go::AddNamedImport
 		impDecl := &ast.GenDecl{
@@ -177,18 +164,25 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 			}
 			impDecl.TokPos = c.End()
 		}
-		f.Decls = append(f.Decls, nil)
-		copy(f.Decls[lastImport+2:], f.Decls[lastImport+1:])
-		f.Decls[lastImport+1] = impDecl
 
+		firstImportDecl := l.firstImportDec(file)
+
+		if firstImportDecl != nil && firstImportDecl.Doc != nil && firstImportDecl.Lparen.IsValid() {
+			impDecl.Doc = firstImportDecl.Doc
+			l.removeComment(file, firstImportDecl.Doc)
+		}
+
+		f.Decls = append(f.Decls, nil)
+		copy(f.Decls[1:], f.Decls[0:])
+		f.Decls[0] = impDecl
+
+		// Insert imports
 		for _, newImport := range stdLibImports {
 			// Mostly taken from astutil/imports.go::AddNamedImport
 
-			// Insert new import at insertAt.
-			insertAt := 0
 			impDecl.Specs = append(impDecl.Specs, nil)
-			copy(impDecl.Specs[insertAt+1:], impDecl.Specs[insertAt:])
-			impDecl.Specs[insertAt] = newImport
+			copy(impDecl.Specs[1:], impDecl.Specs[0:])
+			impDecl.Specs[0] = newImport
 			pos := impDecl.Pos()
 
 			if newImport.Name != nil {
@@ -201,6 +195,29 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 		}
 
 		impDecl.Lparen = impDecl.Specs[0].Pos()
+
+		// Restore doc
+		if impDecl.Doc != nil {
+			var buf bytes.Buffer
+			format.Node(&buf, fset, file)
+			content = buf.String()
+
+			fset = token.NewFileSet()
+
+			file, err = parser.ParseFile(fset, "", content, parser.ParseComments)
+			if err != nil {
+				return "", err
+			}
+
+			firstImplDec := l.firstImportDec(file)
+
+			firstImplDec.Doc = impDecl.Doc
+
+			for _, cmt := range firstImplDec.Doc.List {
+				cmt.Slash = firstImplDec.Pos()-1
+			}
+		}
+
 	}
 
 	var buf bytes.Buffer
@@ -208,13 +225,6 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 
 	res := buf.String()
 
-	/*
-		rexp := regexp.MustCompile("(?s)import \\((.*?)\\)")
-		importS := rexp.Find(buf.Bytes())
-
-		fmt.Println(string(importS))
-
-	*/
 	res = strings.Replace(res, ")\n\nimport (", "", 1)
 
 	if len(stdLibImports) > 0 {
@@ -279,30 +289,9 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 			cmts = append(cmts[:minCmtI], cmts[minCmtI+1:]...)
 			file.Comments = append(file.Comments, minCmt)
 		}
-		/*
-			for i := 0; i < len(file.Decls); i++ {
-				decl := file.Decls[i]
-				gen, ok := decl.(*ast.GenDecl)
-				if !ok || gen.Tok != token.IMPORT {
-					continue
-				}
-
-				for _, impSpec := range stdLibImports {
-					if impSpec.Comment != nil {
-						file.Comments = append(file.Comments, stdLibImports[1].Comment)
-						file.Imports[0].Comment = stdLibImports[1].Comment
-						file.Imports[0].Comment.List[0].Slash = file.Imports[0].End()
-						break
-					}
-				}
-
-				break
-			}
-		*/
 		buf.Reset()
 		format.Node(&buf, fset, file)
 		res = buf.String()
-		//fmt.Println(res)
 	}
 
 	return res, nil
