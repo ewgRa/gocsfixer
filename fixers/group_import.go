@@ -56,32 +56,21 @@ func (l *GroupImportFixer) Lint(content string) (Problems, error) {
 	// astutil.Imports think that imports that have docs start new group, we consider it as one group, so, we need merge them
 	importList = l.mergeDocGroups(fset, importList)
 
-	firstGroupMixed := false
+	firstGroupProblematic := false
 
 	if len(importList) > 0 {
-		firstGroupMixed = l.mixedGroup(importList[0])
+		firstGroupProblematic = l.mixedGroup(importList[0])
 
 		// Check that it is not "alone" 'import "stdlib"' that for us is invalid in any case
-		if !firstGroupMixed && len(importList[0]) == 1 && l.isStdLibImport(file.Imports[0].Path.Value) {
-			for i := 0; i < len(file.Decls); i++ {
-				decl := file.Decls[i]
-				gen, ok := decl.(*ast.GenDecl)
-				if !ok || gen.Tok != token.IMPORT {
-					continue
-				}
-
-				if !gen.Lparen.IsValid() {
-					firstGroupMixed = true
-				}
-
-				break
-			}
+		if !firstGroupProblematic && len(importList[0]) == 1 && l.isStdLibImport(file.Imports[0].Path.Value) {
+			firstImportDecl := l.firstImportDec(file)
+			firstGroupProblematic = !firstImportDecl.Lparen.IsValid()
 		}
 	}
 
 	for k, importSpecs := range importList {
 		for _, importSpec := range importSpecs {
-			if l.isStdLibImport(importSpec.Path.Value) && (firstGroupMixed || k != 0) {
+			if l.isStdLibImport(importSpec.Path.Value) && (firstGroupProblematic || k != 0) {
 				line := fset.Position(importSpec.Pos()).Line
 
 				problems = append(problems, &Problem{
@@ -116,11 +105,41 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 		}
 	}
 
+/*	var firstImportDocGroup *ast.CommentGroup
+
+	firstImportDecl := l.firstImportDec(file)
+
+	if firstImportDecl != nil {
+		firstImportDocGroup = firstImportDecl.Doc
+		l.removeComment(file, firstImportDocGroup)
+	}
+*/
+
+	// Delete found stdlib imports from document, we will add it later in needed order
 	for _, importSpec := range stdLibImports {
 		path, err := strconv.Unquote(importSpec.Path.Value)
 
 		if err != nil {
 			return "", err
+		}
+
+		// If it is import block with doc and one import, attach this doc to import
+		importDec := l.findImportDec(file, importSpec)
+
+		if importDec.Doc != nil && len(importDec.Specs) == 1 {
+			l.removeComment(file, importDec.Doc)
+
+			if importSpec.Doc == nil {
+				importSpec.Doc = importDec.Doc
+			} else {
+				importSpec.Doc.List = append(importDec.Doc.List, importSpec.Doc.List...)
+			}
+
+			importDec.Doc = nil
+		}
+
+		if importSpec.Doc != nil {
+			l.removeComment(file, importSpec.Doc)
 		}
 
 		if importSpec.Name != nil {
@@ -135,23 +154,7 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 
 		// Delete comments and docs as well, we will restore it later with same imports
 		if importSpec.Comment != nil {
-			for i, cg := range file.Comments {
-				if cg == importSpec.Comment {
-					copy(file.Comments[i:], file.Comments[i+1:])
-					file.Comments = file.Comments[:len(file.Comments)-1]
-					break
-				}
-			}
-		}
-
-		if importSpec.Doc != nil {
-			for i, cg := range file.Comments {
-				if cg == importSpec.Doc {
-					copy(file.Comments[i:], file.Comments[i+1:])
-					file.Comments = file.Comments[:len(file.Comments)-1]
-					break
-				}
-			}
+			l.removeComment(file, importSpec.Comment)
 		}
 	}
 
@@ -194,10 +197,10 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 			newImport.Path.ValuePos = pos
 			newImport.EndPos = pos
 
-			impDecl.Lparen = impDecl.Specs[0].Pos()
-
 			file.Imports = append(file.Imports, newImport)
 		}
+
+		impDecl.Lparen = impDecl.Specs[0].Pos()
 	}
 
 	var buf bytes.Buffer
@@ -225,35 +228,36 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 		}
 
 		for _, impSpec := range stdLibImports {
-			if impSpec.Comment != nil || impSpec.Doc != nil {
-				for _, newImportSpec := range file.Imports {
-					if newImportSpec.Path.Value != impSpec.Path.Value {
-						continue
-					}
+			if impSpec.Comment == nil && impSpec.Doc == nil {
+				continue
+			}
 
-					if (newImportSpec.Name != nil && impSpec.Name == nil) || (newImportSpec.Name == nil && impSpec.Name != nil) || (newImportSpec.Name != nil && impSpec.Name != nil && newImportSpec.Name.Name != impSpec.Name.Name) {
-						continue
-					}
-
-					if impSpec.Comment != nil {
-						newImportSpec.Comment = impSpec.Comment
-						for _, cmt := range newImportSpec.Comment.List {
-							cmt.Slash = newImportSpec.Path.End()
-						}
-
-						file.Comments = append(file.Comments, impSpec.Comment)
-					}
-
-					if impSpec.Doc != nil {
-						newImportSpec.Doc = impSpec.Doc
-
-						for _, cmt := range newImportSpec.Doc.List {
-							cmt.Slash = newImportSpec.Pos() - 1
-						}
-
-						file.Comments = append(file.Comments, impSpec.Doc)
-					}
+			for _, newImportSpec := range file.Imports {
+				if !l.sameImportSpec(newImportSpec, impSpec) {
+					continue
 				}
+
+				if impSpec.Comment != nil {
+					newImportSpec.Comment = impSpec.Comment
+
+					for _, cmt := range newImportSpec.Comment.List {
+						cmt.Slash = newImportSpec.Path.End()
+					}
+
+					file.Comments = append(file.Comments, impSpec.Comment)
+				}
+
+				if impSpec.Doc != nil {
+					newImportSpec.Doc = impSpec.Doc
+
+					for _, cmt := range newImportSpec.Doc.List {
+						cmt.Slash = newImportSpec.Pos() - 1
+					}
+
+					file.Comments = append(file.Comments, impSpec.Doc)
+				}
+
+				break
 			}
 		}
 
@@ -347,6 +351,66 @@ func (l *GroupImportFixer) mergeDocGroups(fset *token.FileSet, importGroups [][]
 	}
 
 	return res
+}
+
+func (l *GroupImportFixer) removeComment(file *ast.File, commentGroup *ast.CommentGroup) {
+	for i, cg := range file.Comments {
+		if cg == commentGroup {
+			copy(file.Comments[i:], file.Comments[i+1:])
+			file.Comments = file.Comments[:len(file.Comments)-1]
+			break
+		}
+	}
+}
+
+func (l *GroupImportFixer) firstImportDec(file *ast.File) *ast.GenDecl {
+	for i := 0; i < len(file.Decls); i++ {
+		decl := file.Decls[i]
+		gen, ok := decl.(*ast.GenDecl)
+		if ok && gen.Tok == token.IMPORT {
+			return gen
+		}
+	}
+
+	return nil
+}
+
+func (l *GroupImportFixer) findImportDec(file *ast.File, spec *ast.ImportSpec) *ast.GenDecl {
+	for i := 0; i < len(file.Decls); i++ {
+		decl := file.Decls[i]
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.IMPORT {
+			continue
+		}
+
+		for _, importSpec := range gen.Specs {
+			if importSpec == spec {
+				return gen
+			}
+		}
+	}
+
+	return nil
+}
+
+func (l *GroupImportFixer) sameImportSpec(a *ast.ImportSpec, b *ast.ImportSpec) bool {
+	if a.Path.Value != b.Path.Value {
+		return false
+	}
+
+	if a.Name == nil && b.Name == nil {
+		return true
+	}
+
+	if (a.Name != nil && b.Name == nil) || (a.Name == nil && b.Name != nil) {
+		return false
+	}
+
+	if a.Name.Name != b.Name.Name {
+		return false
+	}
+
+	return true
 }
 
 func (l *GroupImportFixer) String() string {

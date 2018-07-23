@@ -186,13 +186,17 @@ func main() {
 		{
 			`package main
 
-import "testing"
+// foo doc
+import "testing" // foo comment
 
 import (
 	"github.com/ewgRa/gocsfixer/fixers"
 
 	"go/token"
 )
+
+// bar doc
+import "os" // bar comment
 
 func main() {
 }
@@ -201,7 +205,10 @@ func main() {
 
 import (
 	"go/token"
-	"testing"
+	// bar doc
+	"os" // bar comment
+	// foo doc
+	"testing" // foo comment
 
 	"github.com/ewgRa/gocsfixer/fixers"
 )
@@ -210,8 +217,9 @@ func main() {
 }
 `,
 			fixers.Problems{
-				&fixers.Problem{Position: &fixers.Position{Line: 3}, Text: "Group stdlib imports"},
-				&fixers.Problem{Position: &fixers.Position{Line: 8}, Text: "Group stdlib imports"},
+				&fixers.Problem{Position: &fixers.Position{Line: 4}, Text: "Group stdlib imports"},
+				&fixers.Problem{Position: &fixers.Position{Line: 9}, Text: "Group stdlib imports"},
+				&fixers.Problem{Position: &fixers.Position{Line: 13}, Text: "Group stdlib imports"},
 			},
 		},
 		{
@@ -399,6 +407,46 @@ func main() {
 			fixers.Problems{
 				&fixers.Problem{Position: &fixers.Position{Line: 4}, Text: "Group stdlib imports"},
 				&fixers.Problem{Position: &fixers.Position{Line: 8}, Text: "Group stdlib imports"},
+			},
+		},
+		{
+			`package main
+
+// foo doc
+import "github.com/ewgRa/gocsfixer"
+
+import (
+	"testing"
+	"github.com/ewgRa/gocsfixer/fixers"
+
+	// Comment
+	"go/token"
+)
+
+func main() {
+}
+`,
+			`package main
+
+import (
+	// Comment
+	"go/token"
+	"testing"
+)
+
+// foo doc
+import "github.com/ewgRa/gocsfixer"
+
+import (
+	"github.com/ewgRa/gocsfixer/fixers"
+)
+
+func main() {
+}
+`,
+			fixers.Problems{
+				&fixers.Problem{Position: &fixers.Position{Line: 7}, Text: "Group stdlib imports"},
+				&fixers.Problem{Position: &fixers.Position{Line: 11}, Text: "Group stdlib imports"},
 			},
 		},
 	}
