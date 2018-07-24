@@ -1,11 +1,8 @@
 package fixers
 
 import (
-	"bytes"
 	"errors"
 	"go/ast"
-	"go/format"
-	"go/parser"
 	"go/token"
 	"golang.org/x/tools/go/ast/astutil"
 	"strconv"
@@ -36,15 +33,13 @@ type GroupImportFixer struct {
 }
 
 func (l *GroupImportFixer) Lint(content string) (Problems, error) {
-	var problems Problems
+	problems := Problems{}
 
 	if !l.groupStdLib {
 		return problems, nil
 	}
 
-	fset := token.NewFileSet()
-
-	file, err := parser.ParseFile(fset, "", content, parser.ParseComments)
+	fset, file, err := ContentToAst(content)
 	if err != nil {
 		return problems, err
 	}
@@ -90,9 +85,7 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 		return content, nil
 	}
 
-	fset := token.NewFileSet()
-
-	file, err := parser.ParseFile(fset, "", content, parser.ParseComments)
+	fset, file, err := ContentToAst(content)
 	if err != nil {
 		return "", err
 	}
@@ -198,13 +191,8 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 
 		// Restore doc
 		if impDecl.Doc != nil {
-			var buf bytes.Buffer
-			format.Node(&buf, fset, file)
-			content = buf.String()
-
-			fset = token.NewFileSet()
-
-			file, err = parser.ParseFile(fset, "", content, parser.ParseComments)
+			content = AstToContent(fset, file)
+			fset, file, err = ContentToAst(content)
 			if err != nil {
 				return "", err
 			}
@@ -220,19 +208,14 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 
 	}
 
-	var buf bytes.Buffer
-	format.Node(&buf, fset, file)
-
-	res := buf.String()
+	res := AstToContent(fset, file)
 
 	res = strings.Replace(res, ")\n\nimport (", "", 1)
 
 	if len(stdLibImports) > 0 {
 		// Restore comment and doc blocks
 
-		fset = token.NewFileSet()
-
-		file, err = parser.ParseFile(fset, "", res, parser.ParseComments)
+		fset, file, err = ContentToAst(res)
 		if err != nil {
 			return "", err
 		}
@@ -289,9 +272,8 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 			cmts = append(cmts[:minCmtI], cmts[minCmtI+1:]...)
 			file.Comments = append(file.Comments, minCmt)
 		}
-		buf.Reset()
-		format.Node(&buf, fset, file)
-		res = buf.String()
+
+		res = AstToContent(fset, file)
 	}
 
 	return res, nil

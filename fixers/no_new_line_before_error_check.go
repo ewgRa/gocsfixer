@@ -1,12 +1,10 @@
 package fixers
 
 import (
-	"bytes"
 	"go/ast"
-	"go/format"
-	"go/parser"
 	"go/token"
 	"strings"
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {
@@ -16,37 +14,46 @@ func init() {
 }
 
 type NoNewLineBeforeErrorCsFixer struct {
-	positions []token.Pos
-	fset      *token.FileSet
 }
 
 func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
-	l.positions = []token.Pos{}
+	problems := Problems{}
 
-	l.fset = token.NewFileSet()
-
-	file, err := parser.ParseFile(l.fset, "", content, parser.ParseComments)
+	fset, file, err := ContentToAst(content)
 	if err != nil {
-		return Problems{}, err
+		return problems, err
 	}
-
-	ast.Inspect(file, l.inspect)
 
 	lines := strings.Split(content, "\n")
 
-	var problems Problems
+	astutil.Apply(
+		file,
+		nil,
+		func(cursor *astutil.Cursor) bool {
+			e, ok := cursor.Node().(*ast.BinaryExpr)
 
-	for _, tokenPos := range l.positions {
-		position := l.fset.Position(tokenPos)
+			if !ok {
+				return true // not a binary operation
+			}
 
-		if position.Line < 2 {
-			continue
-		}
+			if e.Op != token.EQL && e.Op != token.NEQ {
+				return true // not a comparison
+			}
 
-		if lines[position.Line-2] == "" {
-			problems = append(problems, &Problem{Position: NewPosition(position.Line - 1), Text: l.String(), LineText: lines[position.Line-2]})
-		}
-	}
+			xContent := AstToContent(fset, e.X)
+			yContent := AstToContent(fset, e.Y)
+
+			if xContent == "err" || yContent == "err" {
+				position := fset.Position(e.Pos())
+
+				if position.Line >= 2 && lines[position.Line-2] == "" {
+					problems = append(problems, &Problem{Position: NewPosition(position.Line - 1), Text: l.String(), LineText: lines[position.Line-2]})
+				}
+			}
+
+			return true
+		},
+	)
 
 	return problems, nil
 }
@@ -69,30 +76,6 @@ func (l *NoNewLineBeforeErrorCsFixer) Fix(content string) (string, error) {
 	}
 
 	return strings.Join(lines, "\n"), nil
-}
-
-func (l *NoNewLineBeforeErrorCsFixer) inspect(n ast.Node) bool {
-	e, ok := n.(*ast.BinaryExpr)
-
-	if !ok {
-		return true // not a binary operation
-	}
-
-	if e.Op != token.EQL && e.Op != token.NEQ {
-		return true // not a comparison
-	}
-
-	var buf bytes.Buffer
-	format.Node(&buf, l.fset, e.X)
-
-	var bufY bytes.Buffer
-	format.Node(&bufY, l.fset, e.Y)
-
-	if buf.String() == "err" || bufY.String() == "err" {
-		l.positions = append(l.positions, e.Pos())
-	}
-
-	return true
 }
 
 func (l *NoNewLineBeforeErrorCsFixer) String() string {

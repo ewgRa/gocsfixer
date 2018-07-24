@@ -1,11 +1,7 @@
 package fixers
 
 import (
-	"bytes"
 	"go/ast"
-	"go/format"
-	"go/parser"
-	"go/token"
 	"golang.org/x/tools/go/ast/astutil"
 	"strings"
 )
@@ -31,41 +27,36 @@ func init() {
 type AlternativeCallCsFixer struct {
 	selector    string
 	alternative string
-	positions   []token.Pos
-	fset        *token.FileSet
 }
 
 func (l *AlternativeCallCsFixer) Lint(content string) (Problems, error) {
-	l.positions = []token.Pos{}
+	problems := Problems{}
 
-	l.fset = token.NewFileSet()
-
-	file, err := parser.ParseFile(l.fset, "", content, parser.ParseComments)
+	fset, file, err := ContentToAst(content)
 	if err != nil {
-		return Problems{}, err
+		return problems, err
 	}
-
-	var buf bytes.Buffer
-	format.Node(&buf, l.fset, file)
-
-	ast.Inspect(file, l.inspect)
 
 	lines := strings.Split(content, "\n")
 
-	var problems []*Problem
+	astutil.Apply(
+		file,
+		nil,
+		func(cursor *astutil.Cursor) bool {
+			if l.wrongNode(cursor.Node()) {
+				position := fset.Position(cursor.Node().Pos())
+				problems = append(problems, &Problem{Position: NewPosition(position.Line), Text: l.String(), LineText: lines[position.Line-1]})
+			}
 
-	for _, tokenPos := range l.positions {
-		position := l.fset.Position(tokenPos)
-		problems = append(problems, &Problem{Position: NewPosition(position.Line), Text: l.String(), LineText: lines[position.Line-1]})
-	}
+			return true
+		},
+	)
 
 	return problems, nil
 }
 
 func (l *AlternativeCallCsFixer) Fix(content string) (string, error) {
-	l.fset = token.NewFileSet()
-
-	file, err := parser.ParseFile(l.fset, "", content, parser.ParseComments)
+	fset, file, err := ContentToAst(content)
 	if err != nil {
 		return content, err
 	}
@@ -83,18 +74,7 @@ func (l *AlternativeCallCsFixer) Fix(content string) (string, error) {
 		},
 	)
 
-	var buf bytes.Buffer
-	format.Node(&buf, l.fset, file)
-
-	return buf.String(), nil
-}
-
-func (l *AlternativeCallCsFixer) inspect(n ast.Node) bool {
-	if l.wrongNode(n) {
-		l.positions = append(l.positions, n.Pos())
-	}
-
-	return true
+	return AstToContent(fset, file), nil
 }
 
 func (l *AlternativeCallCsFixer) wrongNode(n ast.Node) bool {

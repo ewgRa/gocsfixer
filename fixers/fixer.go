@@ -3,6 +3,11 @@ package fixers
 import (
 	"errors"
 	"fmt"
+	"go/ast"
+	"go/token"
+	"go/parser"
+	"bytes"
+	"go/format"
 )
 
 type FixerOptions map[interface{}]interface{}
@@ -104,4 +109,16 @@ func CreateFixer(name string, options FixerOptions) (CsFixer, error) {
 	}
 
 	return nil, nil
+}
+
+func ContentToAst(content string) (*token.FileSet, *ast.File, error) {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "", content, parser.ParseComments)
+	return fset, file, err
+}
+
+func AstToContent(fset *token.FileSet, node interface{}) string {
+	var buf bytes.Buffer
+	format.Node(&buf, fset, node)
+	return buf.String()
 }

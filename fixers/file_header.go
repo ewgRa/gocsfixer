@@ -28,7 +28,7 @@ type FileHeaderCsFixer struct {
 }
 
 func (l *FileHeaderCsFixer) Lint(content string) (Problems, error) {
-	var problems Problems
+	problems := Problems{}
 
 	if !strings.HasPrefix(content, l.header) {
 		lines := strings.Split(content, "\n")
