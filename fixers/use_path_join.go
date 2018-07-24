@@ -32,7 +32,7 @@ func (l *UsePathJoinCsFixer) Lint(content string) (Problems, error) {
 		return Problems{}, err
 	}
 
-	ast.Inspect(file, l.check)
+	ast.Inspect(file, l.inspect)
 
 	lines := strings.Split(content, "\n")
 
@@ -60,7 +60,7 @@ func (l *UsePathJoinCsFixer) Fix(content string) (string, error) {
 		file,
 		nil,
 		func(cursor *astutil.Cursor) bool {
-			if l.isWrongNode(cursor.Node()) {
+			if l.wrongNode(cursor.Node()) {
 				wrongNodeCount++
 
 				e, _ := cursor.Node().(*ast.CallExpr)
@@ -82,15 +82,15 @@ func (l *UsePathJoinCsFixer) Fix(content string) (string, error) {
 	return buf.String(), nil
 }
 
-func (l *UsePathJoinCsFixer) check(n ast.Node) bool {
-	if l.isWrongNode(n) {
+func (l *UsePathJoinCsFixer) inspect(n ast.Node) bool {
+	if l.wrongNode(n) {
 		l.positions = append(l.positions, n.Pos())
 	}
 
 	return true
 }
 
-func (l *UsePathJoinCsFixer) isWrongNode(n ast.Node) bool {
+func (l *UsePathJoinCsFixer) wrongNode(n ast.Node) bool {
 	selectors := map[string]bool{"os.Readlink": true}
 
 	e, ok := n.(*ast.CallExpr)
@@ -112,15 +112,15 @@ func (l *UsePathJoinCsFixer) isWrongNode(n ast.Node) bool {
 		return false
 	}
 
-	return l.isWrongArg(e.Args[0])
+	return l.wrongArg(e.Args[0])
 }
 
-func (l *UsePathJoinCsFixer) isWrongArg(n ast.Node) bool {
+func (l *UsePathJoinCsFixer) wrongArg(n ast.Node) bool {
 	binArg, ok := n.(*ast.BinaryExpr)
 
 	if ok && binArg.Op.String() == "+" {
 		// Left or right have path separator?
-		return l.isWrongArg(binArg.X) || l.isWrongArg(binArg.Y)
+		return l.wrongArg(binArg.X) || l.wrongArg(binArg.Y)
 	}
 
 	arg, ok := n.(*ast.BasicLit)
@@ -129,7 +129,7 @@ func (l *UsePathJoinCsFixer) isWrongArg(n ast.Node) bool {
 		return false
 	}
 
-	// Something like os.Readlink("foo/self")
+	// Something like os.Readlink("foo/self") ?
 	parts := strings.Split(arg.Value, string(os.PathSeparator))
 
 	return len(parts) > 1
@@ -142,20 +142,20 @@ func (l *UsePathJoinCsFixer) processArg(n ast.Expr) ast.Expr {
 		binArg.X = l.processArg(binArg.X)
 		binArg.Y = l.processArg(binArg.Y)
 
-		rightJoin := l.getRightPathJoinCall(binArg.X)
+		rightJoin := l.rightPathJoinCall(binArg.X)
 
 		if rightJoin != nil {
-			if l.isPathJoinCallLeftEmpty(binArg.Y) {
+			if l.emptyLeftPathJoinCall(binArg.Y) {
 				rightJoin.(*ast.CallExpr).Args = append(rightJoin.(*ast.CallExpr).Args, binArg.Y.(*ast.CallExpr).Args[1:]...)
 				return binArg.X
 			}
 
-			if l.isPathJoinCallRightEmpty(rightJoin) {
+			if l.emptyRightPathJoinCall(rightJoin) {
 				rightArgs := rightJoin.(*ast.CallExpr).Args
 				rightJoin.(*ast.CallExpr).Args = append(rightArgs[:len(rightArgs)-1], binArg.Y.(*ast.CallExpr).Args...)
 				return binArg.X
 			}
-		} else if l.isPathJoinCallLeftEmpty(binArg.Y) {
+		} else if l.emptyLeftPathJoinCall(binArg.Y) {
 			args := binArg.Y.(*ast.CallExpr).Args
 			binArg.Y.(*ast.CallExpr).Args = append([]ast.Expr{binArg.X}, args[1:]...)
 			return binArg.Y
@@ -193,7 +193,7 @@ func (l *UsePathJoinCsFixer) processArg(n ast.Expr) ast.Expr {
 	return pathJoinCall
 }
 
-func (l *UsePathJoinCsFixer) isPathJoinCall(n ast.Expr) bool {
+func (l *UsePathJoinCsFixer) pathJoinCall(n ast.Expr) bool {
 	arg, ok := n.(*ast.CallExpr)
 
 	if !ok {
@@ -219,46 +219,38 @@ func (l *UsePathJoinCsFixer) isPathJoinCall(n ast.Expr) bool {
 	return selector.Sel.Name == "Join"
 }
 
-func (l *UsePathJoinCsFixer) getRightPathJoinCall(n ast.Expr) ast.Expr {
+func (l *UsePathJoinCsFixer) rightPathJoinCall(n ast.Expr) ast.Expr {
 	binArg, ok := n.(*ast.BinaryExpr)
 
 	if ok {
-		return l.getRightPathJoinCall(binArg.Y)
+		return l.rightPathJoinCall(binArg.Y)
 	}
 
-	if !l.isPathJoinCall(n) {
+	if !l.pathJoinCall(n) {
 		return nil
 	}
 
 	return n
 }
 
-func (l *UsePathJoinCsFixer) isPathJoinCallLeftEmpty(n ast.Expr) bool {
-	if !l.isPathJoinCall(n) {
+func (l *UsePathJoinCsFixer) emptyLeftPathJoinCall(n ast.Expr) bool {
+	if !l.pathJoinCall(n) {
 		return false
 	}
 
 	arg, ok := n.(*ast.CallExpr).Args[0].(*ast.BasicLit)
 
-	if !ok {
-		return false
-	}
-
-	return arg.Value == "\"\""
+	return ok && arg.Value == `""`
 }
 
-func (l *UsePathJoinCsFixer) isPathJoinCallRightEmpty(n ast.Expr) bool {
-	if !l.isPathJoinCall(n) {
+func (l *UsePathJoinCsFixer) emptyRightPathJoinCall(n ast.Expr) bool {
+	if !l.pathJoinCall(n) {
 		return false
 	}
 
 	arg, ok := n.(*ast.CallExpr).Args[len(n.(*ast.CallExpr).Args)-1].(*ast.BasicLit)
 
-	if !ok {
-		return false
-	}
-
-	return arg.Value == "\"\""
+	return ok && arg.Value == `""`
 }
 
 func (l *UsePathJoinCsFixer) String() string {

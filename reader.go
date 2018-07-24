@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 )
 
+// ReadResults for import it in external tools for easy parse results and use them in CI for example
 func ReadResults(fileName string) ([]*Result, error) {
 	var results []*Result
 

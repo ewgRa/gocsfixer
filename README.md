@@ -13,7 +13,8 @@ You can combine flags, like "-recommend -lint".
 Example of configuration file, where you need configure fixers and desired levels, where they work:
 ```
 fixers:
-    no_new_line_before_error_check:
+    our_fixer_human_readable_alias:
+        type: no_new_line_before_error_check
         recommend: true
         lint: true
         fix: true
@@ -21,33 +22,16 @@ fixers:
 
 With this configuration we want use "no_new_line_before_error_check" fixer and define it as recommendation and linter, that can be fixed by run "gocsfixer -fix" command.
 
-Each check have three levels, that allow you to deal with false-positives and false-negatives results.
+Levels allow you to deal with false-positives and false-negatives results.
 For example if you think, that your check never gives false-positives and false-negatives cases, you can enable it on all three levels.
 If you not sure about how strict you are with check, you can define it only as recommended check.
 Or for example you know that this check must be on lint level, but it can be fixed only manually - than you define your check as lint: true, fix: false.
 
-## Fixers
-- no_new_line_before_error_check - check that there is no new line before "if err != nil", inspired by https://github.com/elastic/beats/pull/5954#discussion_r162829996
-- [WIP] use_path_join - check that instead `os.Readlink("foo/bar" + "/foobar")` path.Join used and code looks like `os.Readlink(path.Join("foo", "bar", "foobar"))` [https://github.com/ewgRa/gocsfixer/issues/2]
-- [WIP] replace_call - will be used to recommend call on function instead of other, for example use logp.Err instead of logp.Warn [https://github.com/ewgRa/gocsfixer/issues/4]
-- [WIP] group_stdlib_imports - group stdlib imports all together [https://github.com/ewgRa/gocsfixer/issues/3]
+## Available fixers
+- alternative_call - use one function instead of other, for example force to use logp.Err instead of logp.Warn
+- file_header - check that file have specific header at the beginning of file, for example license header
+- group_import - group imports, for now on support grouping std lib imports in one import
+- no_new_line_before_error_check - check that there is no new line before "if err != nil"
+- use_path_join - check that instead `os.Readlink("foo/bar" + "/foobar")` path.Join used and code looks like `os.Readlink(path.Join("foo", "bar", "foobar"))`
 
-Early alpha version
-
-Inspired by:
-
-- https://github.com/FriendsOfPHP/PHP-CS-Fixer
-
-- https://github.com/golang/lint
-
-- https://github.com/golang/go/tree/master/src/fmt
-
-- https://github.com/golang/go/tree/master/src/cmd/fix
-
-- https://github.com/elastic/beats/issues/6273
-
-- https://github.com/golang/lint/issues/263
-
-- https://github.com/golang/example/tree/master/gotypes (CheckNilFuncComparison)
-
-- https://github.com/golang/tools/commit/6d70fb2e85323e81c89374331d3d2b93304faa36 (tests)
+Check cmd/gocsfixer/.gocsfixer.yml example configuration file for details and available options.

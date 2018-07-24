@@ -62,7 +62,7 @@ func (l *GroupImportFixer) Lint(content string) (Problems, error) {
 		firstGroupProblematic = l.mixedGroup(importList[0])
 
 		// Check that it is not "alone" 'import "stdlib"' that for us is invalid in any case
-		if !firstGroupProblematic && len(importList[0]) == 1 && l.isStdLibImport(file.Imports[0].Path.Value) {
+		if !firstGroupProblematic && len(importList[0]) == 1 && l.stdLibImport(file.Imports[0].Path.Value) {
 			firstImportDecl := l.firstImportDec(file)
 			firstGroupProblematic = !firstImportDecl.Lparen.IsValid()
 		}
@@ -70,7 +70,7 @@ func (l *GroupImportFixer) Lint(content string) (Problems, error) {
 
 	for k, importSpecs := range importList {
 		for _, importSpec := range importSpecs {
-			if l.isStdLibImport(importSpec.Path.Value) && (firstGroupProblematic || k != 0) {
+			if l.stdLibImport(importSpec.Path.Value) && (firstGroupProblematic || k != 0) {
 				line := fset.Position(importSpec.Pos()).Line
 
 				problems = append(problems, &Problem{
@@ -100,7 +100,7 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 	var stdLibImports []*ast.ImportSpec
 
 	for _, importSpec := range file.Imports {
-		if l.isStdLibImport(importSpec.Path.Value) {
+		if l.stdLibImport(importSpec.Path.Value) {
 			stdLibImports = append(stdLibImports, importSpec)
 		}
 	}
@@ -297,7 +297,7 @@ func (l *GroupImportFixer) Fix(content string) (string, error) {
 	return res, nil
 }
 
-func (l *GroupImportFixer) isStdLibImport(importPath string) bool {
+func (l *GroupImportFixer) stdLibImport(importPath string) bool {
 	// Taken from imports.go::isThirdParty
 	return !strings.Contains(importPath, ".")
 }
@@ -307,7 +307,7 @@ func (l *GroupImportFixer) mixedGroup(specs []*ast.ImportSpec) bool {
 	haveNotStdImport := false
 
 	for _, importSpec := range specs {
-		if l.isStdLibImport(importSpec.Path.Value) {
+		if l.stdLibImport(importSpec.Path.Value) {
 			haveStdImport = true
 		} else {
 			haveNotStdImport = true

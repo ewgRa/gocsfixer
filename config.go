@@ -53,7 +53,13 @@ func ReadConfig(file string) ([]*CsFixerConfig, error) {
 	configs := []*CsFixerConfig{}
 
 	for name, settings := range config["fixers"] {
-		createFunc, ok := fixers.FixersMap[name]
+		fixerType, err := extractString(settings["type"])
+
+		if err != nil {
+			return []*CsFixerConfig{}, fmt.Errorf("Wrong fixer %s type setting: %s", name, settings["type"])
+		}
+
+		createFunc, ok := fixers.FixersMap[fixerType]
 
 		if !ok {
 			return []*CsFixerConfig{}, fmt.Errorf("Unknown fixer %s", name)
@@ -104,6 +110,16 @@ func extractBool(v interface{}) (bool, error) {
 
 	if !ok {
 		return false, fmt.Errorf("%s not a bool value", v)
+	}
+
+	return value, nil
+}
+
+func extractString(v interface{}) (string, error) {
+	value, ok := v.(string)
+
+	if !ok {
+		return "", fmt.Errorf("%s not a string value", v)
 	}
 
 	return value, nil

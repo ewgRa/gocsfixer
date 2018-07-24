@@ -30,7 +30,7 @@ func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
 		return Problems{}, err
 	}
 
-	ast.Inspect(file, l.check)
+	ast.Inspect(file, l.inspect)
 
 	lines := strings.Split(content, "\n")
 
@@ -71,11 +71,13 @@ func (l *NoNewLineBeforeErrorCsFixer) Fix(content string) (string, error) {
 	return strings.Join(lines, "\n"), nil
 }
 
-func (l *NoNewLineBeforeErrorCsFixer) check(n ast.Node) bool {
+func (l *NoNewLineBeforeErrorCsFixer) inspect(n ast.Node) bool {
 	e, ok := n.(*ast.BinaryExpr)
+
 	if !ok {
 		return true // not a binary operation
 	}
+
 	if e.Op != token.EQL && e.Op != token.NEQ {
 		return true // not a comparison
 	}

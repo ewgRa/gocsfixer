@@ -45,7 +45,7 @@ func createAlternativeCallFixer() *fixers.AlternativeCallCsFixer {
 	mapFixer, _ := fixers.CreateFixer(
 		"alternative_call",
 		fixers.FixerOptions{
-			"selector": "logp.Warn",
+			"selector":    "logp.Warn",
 			"alternative": "logp.Err",
 		},
 	)

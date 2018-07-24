@@ -29,10 +29,10 @@ func init() {
 }
 
 type AlternativeCallCsFixer struct {
-	selector string
+	selector    string
 	alternative string
-	positions []token.Pos
-	fset      *token.FileSet
+	positions   []token.Pos
+	fset        *token.FileSet
 }
 
 func (l *AlternativeCallCsFixer) Lint(content string) (Problems, error) {
@@ -48,7 +48,7 @@ func (l *AlternativeCallCsFixer) Lint(content string) (Problems, error) {
 	var buf bytes.Buffer
 	format.Node(&buf, l.fset, file)
 
-	ast.Inspect(file, l.check)
+	ast.Inspect(file, l.inspect)
 
 	lines := strings.Split(content, "\n")
 
@@ -74,7 +74,7 @@ func (l *AlternativeCallCsFixer) Fix(content string) (string, error) {
 		file,
 		nil,
 		func(cursor *astutil.Cursor) bool {
-			if l.isWrongNode(cursor.Node()) {
+			if l.wrongNode(cursor.Node()) {
 				e, _ := cursor.Node().(*ast.CallExpr)
 				l.processArg(e)
 			}
@@ -89,22 +89,27 @@ func (l *AlternativeCallCsFixer) Fix(content string) (string, error) {
 	return buf.String(), nil
 }
 
-func (l *AlternativeCallCsFixer) check(n ast.Node) bool {
-	if l.isWrongNode(n) {
+func (l *AlternativeCallCsFixer) inspect(n ast.Node) bool {
+	if l.wrongNode(n) {
 		l.positions = append(l.positions, n.Pos())
 	}
 
 	return true
 }
 
-func (l *AlternativeCallCsFixer) isWrongNode(n ast.Node) bool {
+func (l *AlternativeCallCsFixer) wrongNode(n ast.Node) bool {
 	e, ok := n.(*ast.CallExpr)
 
 	if !ok {
 		return false // not a function call
 	}
 
-	selector := e.Fun.(*ast.SelectorExpr)
+	selector, ok := e.Fun.(*ast.SelectorExpr)
+
+	if !ok {
+		return false
+	}
+
 	ident := selector.X.(*ast.Ident)
 
 	return l.selector == ident.Name+"."+selector.Sel.Name

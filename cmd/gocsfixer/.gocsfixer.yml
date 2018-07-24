@@ -1,9 +1,12 @@
 fixers:
    no_new_line_before_error_check:
+       type: no_new_line_before_error_check
        recommend: true
        lint: true
        fix: true
-   file_header:
+
+   license_header:
+       type: file_header
        recommend: true
        lint: true
        fix: true
@@ -15,11 +18,13 @@ fixers:
             lintText: License header required
 
    use_path_join:
+       type: use_path_join
        recommend: true
        lint: true
        fix: true
 
-   group_import:
+   group_std_imports:
+       type: group_import
        recommend: true
        lint: true
        fix: true
@@ -27,7 +32,8 @@ fixers:
             stdLib: true
             lintText: Group stdLib imports
 
-   alternative_call:
+   log_err_instead_log_warn:
+       type: alternative_call
        recommend: true
        lint: true
        fix: true
