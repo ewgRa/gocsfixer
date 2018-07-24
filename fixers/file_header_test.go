@@ -14,28 +14,29 @@ func TestFileHeaderFix(t *testing.T) {
 }
 
 func fileHeaderTestTable() []fixerTestCase {
-	cases := []fixerTestCase{
+	return []fixerTestCase{
 		{
-			"\npackage main\n\n" +
-				"func main() {\n\n" +
-				"}",
-			"// Header\n\n" +
-				"package main\n\n" +
-				"func main() {\n\n" +
-				"}",
+			`package main
+
+func main() {
+}`,
+			`// Header
+
+package main
+
+func main() {
+}`,
 			fixers.Problems{
 				&fixers.Problem{Position: &fixers.Position{Line: 1}, Text: "License header required"},
 			},
 		},
 	}
-
-	return cases
 }
 
 func createFileHeaderFixer() *fixers.FileHeaderCsFixer {
 	mapFixer, _ := fixers.CreateFixer(
 		"file_header",
-		fixers.FixerOptions{"header": "// Header\n", "lintText": "License header required"},
+		fixers.FixerOptions{"header": "// Header\n\n", "lintText": "License header required"},
 	)
 
 	return mapFixer.(*fixers.FileHeaderCsFixer)
