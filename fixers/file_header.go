@@ -12,7 +12,7 @@ func init() {
 			return nil, err
 		}
 
-		lintText, err := options.extractString("lintText", "File header")
+		lintText, err := options.extractString("lintText", "")
 
 		if err != nil {
 			return nil, err
@@ -32,7 +32,7 @@ func (l *FileHeaderCsFixer) Lint(content string) (Problems, error) {
 
 	if !strings.HasPrefix(content, l.header) {
 		lines := strings.Split(content, "\n")
-		problems = append(problems, &Problem{Position: NewPosition(1), Text: l.lintText, LineText: lines[0]})
+		problems = append(problems, &Problem{Position: NewPosition(1), Text: l.String(), LineText: lines[0]})
 	}
 
 	return problems, nil
@@ -43,5 +43,9 @@ func (l *FileHeaderCsFixer) Fix(content string) (string, error) {
 }
 
 func (l *FileHeaderCsFixer) String() string {
+	if l.lintText != "" {
+		return l.lintText
+	}
+
 	return "File header"
 }

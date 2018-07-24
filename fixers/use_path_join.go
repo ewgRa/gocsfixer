@@ -40,7 +40,7 @@ func (l *UsePathJoinCsFixer) Lint(content string) (Problems, error) {
 
 	for _, tokenPos := range l.positions {
 		position := l.fset.Position(tokenPos)
-		problems = append(problems, &Problem{Position: NewPosition(position.Line), Text: "Use path.Join", LineText: lines[position.Line-1]})
+		problems = append(problems, &Problem{Position: NewPosition(position.Line), Text: l.String(), LineText: lines[position.Line-1]})
 	}
 
 	return problems, nil

@@ -26,3 +26,11 @@ fixers:
        options:
             stdLib: true
             lintText: Group stdLib imports
+
+   alternative_call:
+       recommend: true
+       lint: true
+       fix: true
+       options:
+            selector: logp.Warn
+            alternative: logp.Err
