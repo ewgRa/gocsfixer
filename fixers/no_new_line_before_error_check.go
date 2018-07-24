@@ -44,7 +44,7 @@ func (l *NoNewLineBeforeErrorCsFixer) Lint(content string) (Problems, error) {
 		}
 
 		if lines[position.Line-2] == "" {
-			problems = append(problems, &Problem{Position: NewPosition(position.Line - 1), Text: "No newline before check error", LineText: lines[position.Line-2]})
+			problems = append(problems, &Problem{Position: NewPosition(position.Line - 1), Text: l.String(), LineText: lines[position.Line-2]})
 		}
 	}
 
