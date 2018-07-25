@@ -1,13 +1,13 @@
 package fixers
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"go/ast"
-	"go/token"
-	"go/parser"
-	"bytes"
 	"go/format"
+	"go/parser"
+	"go/token"
 )
 
 type FixerOptions map[interface{}]interface{}

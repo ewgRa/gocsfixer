@@ -3,8 +3,8 @@ package fixers
 import (
 	"go/ast"
 	"go/token"
-	"strings"
 	"golang.org/x/tools/go/ast/astutil"
+	"strings"
 )
 
 func init() {
