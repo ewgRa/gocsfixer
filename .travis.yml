@@ -2,18 +2,41 @@ language: go
 sudo: required
 
 dist: trusty
-group: deprecated-2017Q4
+
+notifications:
+  email: false
+
+branches:
+  only:
+    - "master"
 
 git:
   depth: 3
   submodules: false
 
+before_install:
+  - pip install --user codecov
+
 install:
   - export GOPATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace:$GOPATH"
   - export PATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace/bin:$PATH"
+  - go get -u github.com/golang/lint/golint
+  - go get -u golang.org/x/tools/cmd/goimports
+  - go get -u github.com/sqs/goreturns
+  - go get -u github.com/kisielk/errcheck
+  - go get -u ./...
 
 script:
+  - gofmt -l . | (! grep .) || (echo "Code differs from gofmt's style" && false)
+  - goimports -l . | (! grep .) || (echo "goimports detect some issues" && false)
+  - goreturns -l . | (! grep .) || (echo "goreturns detect some issues" && false)
+  - errcheck ./...
+  - go tool vet .
+  - golint ./... | (! grep .) || (echo "Golint report some issues" && false)
   - (git diff master --name-status | grep "^D" -v | sed "s/^.\t//g" | grep "\.go$" | bash scripts/cscheck.sh) || exit 1
+  - find . -name *_test.go -exec go test -coverprofile={}.coverage.out -coverpkg="./..." {} \;
+  - "echo mode: set > coverage.txt"
+  - find . -name *coverage.out -exec cat {} \; | grep "mode:" -v | sort | uniq >> coverage.txt
 
-notifications:
-  email: false
+after_success:
+  - codecov
