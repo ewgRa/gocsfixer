@@ -1,0 +1,21 @@
+fixers:
+   no_new_line_before_error_check:
+       type: no_new_line_before_error_check
+       recommend: true
+       lint: true
+       fix: true
+
+   use_path_join:
+       type: use_path_join
+       recommend: true
+       lint: true
+       fix: true
+
+   group_std_imports:
+       type: group_import
+       recommend: true
+       lint: true
+       fix: true
+       options:
+            stdLib: true
+            lintText: Group stdLib imports
