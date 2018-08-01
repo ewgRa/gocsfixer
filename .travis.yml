@@ -27,6 +27,8 @@ install:
   - go get -u ./...
 
 script:
+  - pwd
+  - ls
   - gofmt -l . | (! grep .) || (echo "Code differs from gofmt's style" && false)
   - goimports -l . | (! grep .) || (echo "goimports detect some issues" && false)
   - goreturns -l . | (! grep .) || (echo "goreturns detect some issues" && false)
