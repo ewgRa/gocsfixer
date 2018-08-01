@@ -26,14 +26,8 @@ install:
   - go get -u ./...
 
 script:
-  - pwd
-  - ls
   - gofmt -l ${GOFILES_NODEPS} | (! grep .) || (echo "Code differs from gofmt's style" && false)
-  - goimports -l ${GOFILES_NODEPS} | (! grep .) || (echo "goimports detect some issues" && false)
-  - goreturns -l ${GOFILES_NODEPS} | (! grep .) || (echo "goreturns detect some issues" && false)
-  - errcheck ${GOFILES_NODEPS}
-  - go tool vet . | grep -v "Godeps/" | (! grep .) || (echo "Go vet report some issues" && false)
-  - golint ${GOFILES_NODEPS} | (! grep .) || (echo "Golint report some issues" && false)
+  - git diff master --name-status | grep "^D" -v | sed "s/^.\t//g" | grep "\.go$"
   - (git diff master --name-status | grep "^D" -v | sed "s/^.\t//g" | grep "\.go$" | bash scripts/cscheck.sh) || exit 1
   - find . -name *_test.go -exec go test -coverprofile={}.coverage.out -coverpkg="./..." {} \;
   - "echo mode: set > coverage.txt"
