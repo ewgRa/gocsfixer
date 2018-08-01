@@ -1,5 +1,5 @@
 # gocsfixer
-Golang coding standards fixer, help you automize coding style checks.
+Golang coding style fixer, help you automize coding style checks.
 
 ## Run
 gocsfixer have several flags, that allow you to choose, which one levels of checks you want to perform and control exit code:
