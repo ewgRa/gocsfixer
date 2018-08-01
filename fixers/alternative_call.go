@@ -2,8 +2,9 @@ package fixers
 
 import (
 	"go/ast"
-	"golang.org/x/tools/go/ast/astutil"
 	"strings"
+
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {

@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ewgRa/gocsfixer"
-	"github.com/ewgRa/gocsfixer/fixers"
 	"io/ioutil"
 	"os"
 	"reflect"
+
+	"github.com/ewgRa/gocsfixer"
+	"github.com/ewgRa/gocsfixer/fixers"
 )
 
 func main() {

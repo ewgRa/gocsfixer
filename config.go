@@ -2,9 +2,10 @@ package gocsfixer
 
 import (
 	"fmt"
+	"io/ioutil"
+
 	"github.com/ewgRa/gocsfixer/fixers"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 )
 
 func NewCsFixerConfig(recommend, lint, fix bool, csFixer fixers.CsFixer) *CsFixerConfig {

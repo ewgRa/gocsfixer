@@ -4,9 +4,10 @@ import (
 	"errors"
 	"go/ast"
 	"go/token"
-	"golang.org/x/tools/go/ast/astutil"
 	"strconv"
 	"strings"
+
+	"golang.org/x/tools/go/ast/astutil"
 )
 
 func init() {

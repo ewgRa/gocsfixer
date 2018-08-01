@@ -1,8 +1,9 @@
 package fixers_test
 
 import (
-	"github.com/ewgRa/gocsfixer/fixers"
 	"testing"
+
+	"github.com/ewgRa/gocsfixer/fixers"
 )
 
 func TestUsePathJoinCsFixerLint(t *testing.T) {

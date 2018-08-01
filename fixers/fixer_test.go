@@ -2,9 +2,10 @@ package fixers_test
 
 import (
 	"fmt"
-	"github.com/ewgRa/gocsfixer/fixers"
 	"strings"
 	"testing"
+
+	"github.com/ewgRa/gocsfixer/fixers"
 )
 
 type fixerTestCase struct {
