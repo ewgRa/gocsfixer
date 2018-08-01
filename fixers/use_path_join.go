@@ -90,7 +90,12 @@ func (l *UsePathJoinCsFixer) wrongNode(n ast.Node) bool {
 		return false
 	}
 
-	ident := selector.X.(*ast.Ident)
+	ident, ok := selector.X.(*ast.Ident)
+
+	if !ok {
+		// unusual selector, like position := fset.Position(cursor.Node().Pos())
+		return false
+	}
 
 	if _, ok := selectors[ident.Name+"."+selector.Sel.Name]; !ok {
 		return false
