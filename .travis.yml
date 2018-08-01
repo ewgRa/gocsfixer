@@ -27,9 +27,8 @@ install:
 
 script:
   - gofmt -l ${GOFILES_NODEPS} | (! grep .) || (echo "Code differs from gofmt's style" && false)
-  - git diff master --name-status | grep "^D" -v | sed "s/^.\t//g" | grep "\.go$"
   - (git diff master --name-status | grep "^D" -v | sed "s/^.\t//g" | grep "\.go$" | bash scripts/cscheck.sh) || exit 1
-  - find . -name *_test.go -exec go test -coverprofile={}.coverage.out -coverpkg="./..." {} \;
+  - find . -name *_test.go -not -path "./Godeps/*" -exec go test -coverprofile={}.coverage.out -coverpkg="./..." {} \;
   - "echo mode: set > coverage.txt"
   - find . -name *coverage.out -exec cat {} \; | grep "mode:" -v | sort | uniq >> coverage.txt
 
