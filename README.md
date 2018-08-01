@@ -1,7 +1,7 @@
 # gocsfixer
 Golang coding style fixer, help you automize coding style checks.
 
-[![Build Status](https://travis-ci.org/ewgRa/gocsfixer.svg?branch=master)](https://travis-ci.org/ewgRa/gocsfixer)
+[![Build Status](https://api.travis-ci.com/ewgRa/gocsfixer.svg?branch=master)](https://travis-ci.org/ewgRa/gocsfixer)
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/ewgra/gocsfixer/master/LICENSE)
 [![GoReportCard](http://goreportcard.com/badge/ewgra/gocsfixer)](http://goreportcard.com/report/ewgra/gocsfixer)
 [![codecov.io](https://codecov.io/github/ewgRa/gocsfixer/coverage.svg?branch=master)](https://codecov.io/github/ewgRa/gocsfixer?branch=master)
