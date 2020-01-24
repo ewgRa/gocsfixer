@@ -1,3 +1,4 @@
+Archived in favor of https://github.com/go-critic/go-critic
 # gocsfixer
 Golang coding style fixer, help you automize coding style checks.
 
